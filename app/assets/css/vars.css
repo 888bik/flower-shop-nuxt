@@ -1,0 +1,15 @@
+:root {
+  --brand: #0f1724;
+  --gold: #d4af37;
+  --gold-dark: #c59c2d;
+  --muted-1: #f8f6f4;
+  --text-on-dark: #f3f4f6;
+  --radius: 12px;
+}
+
+/* focus ring 全局样式 */
+:focus {
+  outline: none;
+  box-shadow: 0 0 0 4px rgba(212, 175, 55, 0.12);
+  border-radius: var(--radius);
+}

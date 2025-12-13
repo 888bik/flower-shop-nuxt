@@ -43,10 +43,11 @@ export class MyRequest {
     this.instance.interceptors.response.use(
       (res: AxiosResponse) => {
         return res.data.data;
+        // return res;
       },
       (err) => {
         const msg = err?.response?.data?.msg || "请求失败";
-        // toast("请求错误", msg, "error");
+        $toast.success("请求错误");
         return Promise.reject(err);
       }
     );
@@ -96,11 +97,14 @@ export class MyRequest {
 // 插件注入
 export default defineNuxtPlugin((nuxtApp) => {
   const config = useRuntimeConfig();
+  // const serverBase = process.server ? "http://8.148.226.68:11048" : "/api"; // 浏览器开发通过 Vite proxy
+  const serverBase = "/api";
+
   const axiosInstance = new MyRequest({
-    baseURL: config.public.apiBase as string, // 从 runtimeConfig 读取
+    baseURL: serverBase,
     timeout: (config.public.timeout as number) ?? 20000,
   });
-  const $api = apiModules(axiosInstance); // 生成模块化 API
 
+  const $api = apiModules(axiosInstance);
   nuxtApp.provide("api", $api);
 });
