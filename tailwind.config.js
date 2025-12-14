@@ -9,22 +9,21 @@ export default {
   theme: {
     extend: {
       colors: {
-        brand: {
-          DEFAULT: "#0F1724", // 深近黑（头部背景）
-        },
-        gold: {
-          DEFAULT: "#D4AF37", // 金色主色
-          // dark: "#C59C2D", // hover / 深金
-          dark: "#B8860B", // hover / 深金
-        },
-        graySoft: {
-          DEFAULT: "#0F1724", //银灰
-          dark: "#9A9A9A", //深灰文字
-        },
-        "muted-1": "#F8F6F4", // 浅背景区块
-        "text-primary": "#F3F4F6", // 页面主要文字（浅色于深背景）
+        // 这些会被映射到 CSS 变量，方便在模板直接使用 bg-brand/text-brand 等
+        brand: "var(--c-brand)",
+        surface: "var(--c-surface)",
+        page: "var(--c-bg)",
+        primary: "var(--c-primary)",
+        accent: "var(--c-accent)",
+        text: "var(--c-text)",
+        muted: "var(--c-muted)",
+        gold: "var(--c-gold)",
+        onSurface: "var(--c-on-surface)",
+        overlay: "var(--c-overlay)",
+        nav: "var(--c-nav-bg)",
+        footer: "var(--c-footer)",
+        borderColor: "var(--c-border)",
       },
-
       borderRadius: {
         xl: "14px",
       },

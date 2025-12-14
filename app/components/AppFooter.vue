@@ -39,8 +39,8 @@ import footerData from "~/assets/data/footer.json";
 
 <style>
 .footer-wrap {
-  background: var(--brand, #0f1724);
-  color: var(--text-on-dark, #f3f4f6);
+  background: var(--c-footer);
+  color: var(--c-text, #2d2d2d);
   padding: 48px 0;
   font-family: Inter, "Noto Sans SC", system-ui, -apple-system, "Helvetica Neue",
     Arial;
@@ -64,6 +64,7 @@ import footerData from "~/assets/data/footer.json";
 .service-item .name {
   font-weight: 600;
   color: var(--gold, #d4af37);
+
   margin-bottom: 10px;
   font-size: 15px;
 }
@@ -73,7 +74,8 @@ import footerData from "~/assets/data/footer.json";
   gap: 8px;
 }
 .list-item {
-  color: rgba(243, 244, 246, 0.84);
+  /* color: rgba(243, 244, 246, 0.84); */
+  color: #2d2d2d;
   font-size: 14px;
   cursor: pointer;
   transition: color 0.15s, transform 0.12s;

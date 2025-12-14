@@ -1,7 +1,5 @@
 <template>
-  <nav
-    class="h-20 flex bg-brand shadow-soft-lg text-text-primary sticky top-0 z-50"
-  >
+  <nav class="nav-site">
     <!-- left -->
     <div class="left flex flex-1 items-center ml-4">
       <LogoIcon />
@@ -11,110 +9,96 @@
         <div class="text-xs -mt-0.5">Luxury Flowers & Gifts</div>
       </div>
 
-      <div class="ml-6">
-        <NuxtLink to="/" class="nav-item">首页</NuxtLink>
-        <NuxtLink to="/category" class="nav-item">分类</NuxtLink>
-        <NuxtLink to="/collections" class="nav-item">礼盒精选</NuxtLink>
-        <NuxtLink to="/about" class="nav-item">关于我们</NuxtLink>
-      </div>
+      <NuxtLink to="/" class="btn ml-3">首页</NuxtLink>
     </div>
 
     <!-- center -->
     <div class="center flex items-center">
-      <div class="search-box">
-        <input
-          type="text"
-          placeholder="搜索鲜花 / 花盒 / 礼品..."
-          class="search-input"
-        />
-        <span class="search-icon">
-          <SearchIcon />
-        </span>
-      </div>
+      <input
+        type="search-bar"
+        placeholder="搜索鲜花 / 花盒 / 礼品..."
+        class="search-input"
+      />
     </div>
 
     <!-- right -->
     <div class="right flex flex-1 items-center justify-end mr-4">
-      <div class="btns flex items-center">
+      <div class="flex items-center px-4">
         <NuxtLink to="/login" class="btn">登录</NuxtLink>
         <NuxtLink to="/login" class="btn">注册</NuxtLink>
-        <NuxtLink to="/cart" class="btn">购物车</NuxtLink>
+        <NuxtLink to="/cart" class="btn">
+          <v-badge
+            location="top right"
+            color="primary"
+            :content="cartStore.totalCount"
+            :offset-x="-5"
+          >
+            <v-icon icon="mdi-cart"></v-icon>
+          </v-badge>
+        </NuxtLink>
       </div>
 
-      <!-- profile -->
-      <div class="profile" ref="profileRef" @click.stop="togglePanel">
-        <MenuIcon class="mx-1 text-white hover:text-[#ffd700]" />
-        <UserIcon class="mx-1 text-white hover:text-[#ffd700]" />
+      <v-menu>
+        <template #activator="{ props }">
+          <v-btn v-bind="props" icon>
+            <v-avatar size="36" color="primary"> </v-avatar>
+          </v-btn>
+        </template>
 
-        <!-- panel -->
-        <div v-if="showPanel" class="panel" @click.stop>
-          <div class="panel-section">
-            <NuxtLink to="/login" class="panel-item">登录</NuxtLink>
-            <NuxtLink to="/login" class="panel-item">注册</NuxtLink>
-          </div>
+        <v-list class="bg-[#0b0b0b] px-3">
+          <v-list-item to="/profile" class="hover:text-gold">
+            <v-icon start>mdi-account</v-icon>个人中心
+          </v-list-item>
 
-          <div class="panel-section border-t border-[#b78f1a]">
-            <NuxtLink to="/order" class="panel-item">订单</NuxtLink>
-            <NuxtLink to="/cart" class="panel-item">购物车</NuxtLink>
-            <NuxtLink to="/service" class="panel-item">客服</NuxtLink>
-          </div>
-        </div>
-      </div>
+          <v-list-item to="/coupon" class="hover:text-gold">
+            <v-icon start>mdi-cart </v-icon>领卷中心
+          </v-list-item>
+
+          <v-list-item to="/about" class="hover:text-gold">
+            <v-icon start> mdi-information </v-icon>关于我们
+          </v-list-item>
+
+          <v-list-item to="/" class="hover:text-gold">
+            <v-icon start> mdi-headset</v-icon>客服
+          </v-list-item>
+        </v-list>
+      </v-menu>
     </div>
   </nav>
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted } from "vue";
 import LogoIcon from "~/assets/svg/LogoIcon.vue";
-import MenuIcon from "~/assets/svg/MenuIcon.vue";
 import SearchIcon from "~/assets/svg/SearchIcon.vue";
-import UserIcon from "~/assets/svg/UserIcon.vue";
-
-const showPanel = ref(false);
-const profileRef = ref<HTMLElement | null>(null);
-
-function togglePanel() {
-  showPanel.value = !showPanel.value;
-}
-
-function handleClickOutside(e: MouseEvent) {
-  if (profileRef.value && !profileRef.value.contains(e.target as Node)) {
-    showPanel.value = false;
-  }
-}
-
-onMounted(() => {
-  window.addEventListener("click", handleClickOutside);
-});
-
-onUnmounted(() => {
-  window.removeEventListener("click", handleClickOutside);
-});
+const cartStore = useCartStore();
 </script>
 
-<style scoped>
+<style>
 /* nav */
-.btn {
-  @apply px-3 py-2 text-sm cursor-pointer
-  text-text-primary hover:text-gold transition;
+.nav-site {
+  @apply h-20 flex bg-[#ffffff] shadow-soft-lg  sticky top-0 z-50 border-b-borderColor text-text backdrop-blur-md;
 }
-
-.nav-item {
-  @apply px-3 text-sm cursor-pointer
-  text-text-primary hover:text-gold transition;
+.nav-size .nav-link {
+  color: var(--c-text);
+  padding: 0.6rem 0.9rem;
+  border-radius: 999px;
 }
-
+.nav-size .nav-link:hover {
+  color: #fff;
+  background: linear-gradient(
+    90deg,
+    var(--c-primary),
+    color-mix(in srgb, var(--c-primary) 65%, #fff 35%)
+  );
+}
 /* search */
 .search-box {
-  @apply relative flex items-center;
+  @apply flex items-center justify-between;
 }
 
 .search-input {
-  @apply w-72 h-10 pl-10 pr-4 rounded-xl
-  bg-brand text-text-primary
-  border border-graySoft-dark
-  focus:outline-none transition;
+  @apply w-72 h-12 pl-10 pr-4  text-[#2222] bg-onSurface border font-semibold
+  focus:outline-none transition border-solid rounded-3xl;
 }
 
 .search-input:focus {
@@ -134,25 +118,7 @@ onUnmounted(() => {
   transition-colors shadow-md;
 }
 
-/* panel */
-.panel {
-  @apply absolute right-0 top-full mt-2
-  w-[220px]
-  rounded-xl
-  bg-[#1a1a1a]
-  border border-[#b78f1a]
-  shadow-xl z-50;
-}
-
-.panel-section {
-  @apply py-2;
-}
-
-.panel-item {
-  @apply block px-4 py-2
-  text-white text-sm
-  hover:text-[#ffd700]
-  hover:bg-[#262626]
-  transition-colors;
+.btn {
+  @apply px-3 hover:text-gold;
 }
 </style>

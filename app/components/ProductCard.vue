@@ -1,129 +1,82 @@
 <template>
   <article
-    class="group relative rounded-xl overflow-hidden border border-white/5 bg-brand/40 hover:shadow-soft-lg transform transition-all duration-300 hover:-translate-y-1"
+    class="product-card group"
     :aria-labelledby="`p-${product.id}-title`"
+    role="article"
   >
-    <!-- 图片容器 -->
-    <div class="relative">
+    <!-- 图片区 -->
+    <div class="card-media">
       <img
-        :src="product.banners[currentImg]"
+        :src="displayImage"
         :alt="product.title || `product-${product.id}`"
-        class="w-full h-[340px] object-cover transition-transform duration-500 group-hover:scale-105"
+        class="media-img"
         loading="lazy"
       />
 
-      <div
-        v-if="product.banners.length > 1"
-        class="absolute left-3 bottom-3 flex gap-2 bg-black/30 rounded-md p-1 backdrop-blur-sm"
-      >
+      <!-- 小缩略图切换 -->
+      <div v-if="product.banners?.length > 1" class="thumbs">
         <button
           v-for="(img, i) in product.banners"
           :key="i"
           @click.stop="currentImg = i"
-          :class="[
-            'w-8 h-8 rounded overflow-hidden transition-opacity',
-            currentImg === i ? 'ring-2 ring-gold/60' : 'opacity-60',
-          ]"
+          :class="['thumb', { active: currentImg === i }]"
+          :aria-label="`切换到第 ${i + 1} 张`"
         >
-          <img :src="img" class="w-full h-full object-cover" loading="lazy" />
+          <img :src="img" class="thumb-img" loading="lazy" />
         </button>
       </div>
 
-      <div v-if="discountPercent > 0" class="absolute top-3 right-3">
-        <span
-          class="inline-flex items-center px-2 py-1 text-xs font-semibold rounded-md bg-rose-600 text-white shadow"
-          >-{{ discountPercent }}%</span
-        >
-      </div>
-
-      <div class="absolute top-3 left-3 flex gap-2">
-        <!-- <span
-          class="text-xs font-medium px-2 py-1 rounded border border-gold/30 text-gold bg-gold/8 backdrop-blur-sm"
-          >NEW</span
-        > -->
-        <button
-          @click.prevent="onWishlist"
-          :title="inWishlist ? '已收藏' : '加入收藏'"
-          class="bg-gold/10 hover:bg-gold/20 text-gold px-3 py-2 rounded-md text-sm border border-gold/20"
-          aria-label="收藏"
-        >
-          ❤
-        </button>
+      <div v-if="discountPercent > 0" class="discount">
+        -{{ discountPercent }}%
       </div>
     </div>
 
-    <!-- 信息区域 -->
-    <div class="p-4">
-      <h3
-        :id="`p-${product.id}-title`"
-        class="text-base font-semibold mb-1 line-clamp-2 text-text-primary"
-        :title="product.title"
-      >
+    <!-- 内容区 -->
+    <div class="card-body">
+      <h3 class="title" :title="product.title" :id="`p-${product.id}-title`">
         {{ product.title }}
       </h3>
 
-      <div class="flex items-center gap-2 text-xs text-graySoft-dark mb-2">
-        <div class="flex items-center gap-1">
-          <svg
-            class="w-4 h-4 text-gold"
-            viewBox="0 0 24 24"
-            fill="currentColor"
-            aria-hidden
-          >
+      <div class="meta-row">
+        <div class="rating">
+          <svg class="star" viewBox="0 0 24 24" aria-hidden>
             <path
-              d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.62L12 2 9.19 8.62 2 9.24l5.46 4.73L5.82 21z"
+              d="M12 17.27L18.18 21 16.54 13.97 22 9.24 14.81 8.62 12 2 9.19 8.62 2 9.24 7.46 13.97 5.82 21z"
             />
           </svg>
-          <span class="font-medium">{{ product.rating }}</span>
+          <span class="num">{{ product.rating }}</span>
         </div>
-        <span class="text-muted-1/70">·</span>
-        <span class="text-muted-1/70">{{ product.saleCount }} 已售</span>
-        <div
-          v-if="categoryNames.length"
-          class="ml-auto flex flex-wrap gap-2 category-line"
-          :style="{ maxHeight: '36px' }"
-        >
+
+        <div class="sold">· {{ product.saleCount }} 已售</div>
+
+        <div class="cats" v-if="categoryNames.length">
           <span
             v-for="(c, i) in categoryNames"
             :key="i"
-            class="text-[11px] px-2 py-0.5 rounded bg-white/3 text-text-primary"
+            class="pill"
+            :title="c"
             >{{ c }}</span
           >
         </div>
       </div>
 
-      <div class="flex items-end justify-between">
-        <div>
-          <div class="text-lg font-bold text-gold">
-            ￥{{ product.minPrice }}
-          </div>
-          <div
-            v-if="product.minOprice"
-            class="text-sm line-through text-muted-1/60"
-          >
-            ￥{{ product.minOprice }}
+      <div class="bottom-row">
+        <div class="price">
+          <div class="now">¥{{ product.minPrice }}</div>
+          <div v-if="product.minOprice" class="old">
+            ¥{{ product.minOprice }}
           </div>
         </div>
 
-        <div class="flex flex-col items-end gap-2">
+        <div class="actions">
           <button
             :disabled="product.stock === 0"
+            class="add-btn"
             @click="onAddToCart"
-            class="border border-gold text-gold px-3 py-2 rounded-md font-semibold shadow-md hover:bg-gold hover:text-black transition-all disabled:opacity-50"
             aria-label="加入购物车"
           >
             加入购物车
           </button>
-          <div
-            v-if="product.stock <= lowStockThreshold"
-            :class="[
-              'text-xs',
-              product.stock === 0 ? 'text-gray-400' : 'text-rose-500',
-            ]"
-          >
-            <span v-if="product.stock === 0">已售罄</span>
-            <span v-else>仅剩 {{ product.stock }} 件</span>
-          </div>
         </div>
       </div>
     </div>
@@ -131,34 +84,28 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref } from "vue";
+import { ref, computed } from "vue";
 import type { ProductItem } from "~/types/api/good";
+
 interface IProps {
   product: ProductItem;
 }
-
-/** 使用你的 GoodsItem 类型 或者按需替换 */
-
 const props = defineProps<IProps>();
 const emit = defineEmits<{
   (e: "add", p: ProductItem): void;
   (e: "quick", p: ProductItem): void;
 }>();
 
-const inWishlist = ref(false);
 const currentImg = ref(0);
-
-// const images = computed(() => {
-//   // 使用 goodsBanner 优先，然后 fallback cover
-//   const banners = props.product.banners?.map((b) => b.url) ?? [];
-//   return banners.length ? banners : [props.product.cover];
-// });
-
-const categoryNames = computed(() =>
-  (props.product.categories ?? []).slice(0, 2).map((c) => c.name)
+const displayImage = computed(() =>
+  props.product.banners && props.product.banners.length
+    ? props.product.banners[currentImg.value]
+    : props.product.cover ?? ""
 );
 
-const lowStockThreshold = 10;
+const categoryNames = computed(() =>
+  (props.product.categories ?? []).slice(0, 2).map((c: any) => c.name)
+);
 
 const discountPercent = computed(() => {
   const p = Number(props.product.minPrice);
@@ -170,33 +117,196 @@ const discountPercent = computed(() => {
 function onAddToCart() {
   emit("add", props.product);
 }
-
-function onQuickView() {
-  emit("quick", props.product);
-}
-
-function onWishlist() {
-  inWishlist.value = !inWishlist.value;
-  // 触发收藏逻辑或API
-}
 </script>
 
 <style scoped>
-.shadow-soft-lg {
-  box-shadow: 0 8px 30px rgba(15, 23, 36, 0.12);
+/* 容器：固定圆角（不要在 hover 时改变）并启用合成层 */
+.product-card {
+  border-radius: 12px;
+  overflow: hidden;
+  background: var(--card-bg, #0b0b0c);
+  border: 1px solid rgba(255, 255, 255, 0.04);
+  transition: transform 0.22s ease, box-shadow 0.22s ease;
+  will-change: transform;
+  transform: translateZ(0);
+  display: flex;
+  flex-direction: column;
 }
 
-.line-clamp-2 {
+/* hover 只变换 translateY 与 shadow，不改 radius/border */
+.product-card:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 14px 40px rgba(2, 6, 23, 0.36);
+}
+
+/* 图片区高度缩短，避免卡片过长 */
+.card-media {
+  position: relative;
+  height: 280px;
+  background: #111;
+}
+
+.media-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  transition: transform 0.45s ease;
+}
+
+.product-card:hover .media-img {
+  transform: scale(1.03);
+}
+
+/* 缩略切换按钮（极小） */
+.thumbs {
+  position: absolute;
+  left: 8px;
+  bottom: 8px;
+  display: flex;
+  gap: 6px;
+  background: rgba(0, 0, 0, 0.28);
+  padding: 6px;
+  border-radius: 8px;
+  backdrop-filter: blur(6px);
+}
+.thumb {
+  width: 34px;
+  height: 34px;
+  border-radius: 6px;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  background: transparent;
+}
+.thumb-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+.thumb.active {
+  outline: 2px solid rgba(212, 175, 55, 0.14);
+}
+
+/* discount badge */
+.discount {
+  position: absolute;
+  right: 8px;
+  top: 8px;
+  background: #ff6b6b;
+  color: #fff;
+  font-weight: 600;
+  padding: 4px 8px;
+  border-radius: 8px;
+  font-size: 12px;
+}
+
+/* 内容区 */
+.card-body {
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-height: 132px; /* 保证底部对齐 */
+}
+
+.title {
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 1.2;
+  margin: 0;
   display: -webkit-box;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
 
-.category-line {
-  display: -webkit-box;
-  -webkit-box-orient: vertical;
-  -webkit-line-clamp: 2; /* 最多两行 */
+/* 元信息行 */
+.meta-row {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.7);
+}
+.rating {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.star {
+  width: 14px;
+  height: 14px;
+  fill: #d4af37;
+}
+.cats {
+  margin-left: auto;
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+
+/* pill（胶囊标签） */
+.pill {
+  display: inline-block;
+  max-width: 8.8rem;
+  white-space: nowrap;
   overflow: hidden;
+  text-overflow: ellipsis;
+  font-size: 11px;
+  padding: 4px 8px;
+  border-radius: 9999px;
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--pill-color, #f3f4f6);
+}
+
+/* 底部行（价格+按钮） */
+.bottom-row {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: auto;
+}
+.price .now {
+  font-size: 16px;
+  color: var(--price-color, #d4af37);
+  font-weight: 700;
+}
+.price .old {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.45);
+  text-decoration: line-through;
+}
+.add-btn {
+  border: 1px solid rgba(212, 175, 55, 0.2);
+  background: transparent;
+  color: var(--price-color, #d4af37);
+  padding: 8px 10px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.18s, color 0.18s;
+}
+.add-btn:hover {
+  background: var(--price-color, #d4af37);
+  color: #000;
+}
+.add-btn:disabled {
+  opacity: 0.48;
+  cursor: not-allowed;
+}
+
+/* 防止角在缩放时受像素化影响（减少闪烁） */
+.product-card,
+.card-media,
+.media-img {
+  -webkit-font-smoothing: antialiased;
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
 }
 </style>

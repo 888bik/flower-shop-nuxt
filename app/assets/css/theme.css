@@ -1,0 +1,138 @@
+/* theme.css — 全局主题变量 & 公共组件样式 */
+
+/* ---------- 默认（light-ish）fallback ---------- */
+:root {
+  --c-bg: #fff9fb; /* page background */
+  --c-surface: #fff0f5; /* card / surface */
+  --c-primary: #ff6fa3; /* action color (pink) */
+  --c-accent: #d4af37; /* gold accent */
+  --c-text: #2d2d2d; /* primary text */
+  --c-muted: #7b6f76; /* muted text */
+  --c-on-surface: #111; /* text placed ON surface (over cards) */
+  --c-overlay: rgba(0, 0, 0, 0.45); /* default dark overlay for readability */
+  --c-gold: #d4af37;
+  --c-nav-bg: #ffffff;
+  --c-footer: #fff5f7;
+  --c-border: rgba(0, 0, 0, 0.06);
+}
+
+/* ---------- 粉白主题（类切换 .theme-pink） ---------- */
+.theme-pink {
+  --c-bg: #fff9fb;
+  --c-surface: #fff0f5;
+  --c-primary: #ff6fa3;
+  --c-accent: #d4af37;
+  --c-text: #2d2d2d;
+  --c-muted: #7b6f76;
+  --c-on-surface: #111; /* 用于卡片内深色文本 */
+  --c-overlay: rgba(255, 255, 255, 0.6); /* 在浅卡片上若需要浅遮罩（rare） */
+}
+
+/* ---------- 白色干净主题（类切换 .theme-white） ---------- */
+.theme-white {
+  --c-bg: #ffffff;
+  --c-surface: #f7f7f8;
+  --c-primary: #e76f51; /* 可替换为你要的主色 */
+  --c-accent: #2b8a3e;
+  --c-text: #111827;
+  --c-muted: #6b7280;
+  --c-on-surface: #111;
+  --c-overlay: rgba(0, 0, 0, 0.45);
+}
+
+/* ---------- 黑金主题（可保留） ---------- */
+.theme-black {
+  --c-bg: #0b0b0c;
+  --c-surface: #1c1c1c;
+  --c-primary: #d4af37;
+  --c-accent: #f5d76e;
+  --c-text: #f3f4f6;
+  --c-muted: rgba(255, 255, 255, 0.6);
+  --c-on-surface: #f3f4f6;
+  --c-overlay: rgba(0, 0, 0, 0.45);
+}
+
+/* ---------- 通用帮助类（使用变量，方便替换） ---------- */
+.bg-page {
+  background-color: var(--c-bg);
+}
+.bg-surface {
+  background-color: var(--c-surface);
+}
+.text-primary {
+  color: var(--c-text);
+}
+.text-muted {
+  color: var(--c-muted);
+}
+.btn-primary {
+  background-color: var(--c-primary);
+  color: #fff;
+  border-radius: 8px;
+  padding: 0.5rem 1rem;
+  box-shadow: 0 8px 24px color-mix(in srgb, var(--c-primary) 18%, transparent);
+}
+
+/* ---------- ProductCard: overlay / split 状态 ---------- */
+/* card 容器上放 .product-card */
+.product-card {
+  background: var(--c-surface);
+  color: var(--c-on-surface);
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+/* 图片上的信息层：默认半透明底，保证文字显示 */
+.product-card .meta {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  padding: 0.6rem;
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+  justify-content: space-between;
+  background: linear-gradient(to top, var(--c-overlay), rgba(0, 0, 0, 0));
+  color: #fff; /* 若需要跟主题一致则用 var(--c-on-surface) 但浅背景下会不可读，见下 */
+}
+
+/* 当 card 在浅色主题或浅图上文字不可读时：使用 is-split 来强制深色文本 + 半透明白底 */
+.product-card.is-split .meta {
+  /* 如果当前主题是浅（pink/white），覆盖为深文本 + 半透明白底以提高可读性 */
+  background: linear-gradient(
+    to top,
+    rgba(255, 255, 255, 0.88),
+    rgba(255, 255, 255, 0)
+  );
+  color: var(--c-on-surface); /* 在浅主题上会是深色 */
+  text-shadow: none;
+}
+
+/* 兼容：在黑暗主题下，is-split 不改变（黑色背景下保留深色遮罩） */
+.theme-black .product-card.is-split .meta {
+  background: linear-gradient(to top, rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0));
+  color: var(--c-on-surface);
+}
+
+/* small pills inside meta */
+.product-card .pill {
+  background: rgba(255, 255, 255, 0.08);
+  padding: 0.2rem 0.45rem;
+  border-radius: 9999px;
+  font-size: 12px;
+  color: var(--c-on-surface);
+}
+
+/* 帮助避免文字过度白化：强制标题使用 var(--c-on-surface) 在 is-split 下 */
+.product-card .meta .title {
+  font-weight: 600;
+  color: inherit;
+}
+
+/* 辅助：可点击时的视觉反馈 */
+.product-card:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.06);
+  transition: all 0.18s;
+}

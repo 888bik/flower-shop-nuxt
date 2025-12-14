@@ -178,6 +178,8 @@ import { useRouter } from "vue-router";
 
 definePageMeta({ layout: "empty" });
 const { $api } = useNuxtApp();
+const userStore = useUserStore();
+const toast = useToast();
 
 const {
   signupForm,
@@ -191,6 +193,11 @@ const {
 const isLogin = ref(true);
 const router = useRouter();
 const isLoading = ref(false);
+const route = useRoute();
+
+const redirect = computed(() => {
+  return (route.query.redirect as string) || "/";
+});
 
 function showLogin() {
   isLogin.value = true;
@@ -208,14 +215,17 @@ const handleRegister = async () => {
     if (token) {
       setToken(token, false, "user-token");
 
-      $toast.success("登录成功 🎉");
+      toast.success("注册成功，正在跳转");
+
+      await userStore.fetchUserInfo();
 
       router.push("/");
     }
   } catch (error: any) {
-    $toast.error(error?.message || "登录失败，请检查账号密码");
+    toast.error("登录失败");
   }
 };
+
 const handleLogin = async () => {
   if (!validateLogin()) return;
 
@@ -229,13 +239,16 @@ const handleLogin = async () => {
       setToken(token, true, "user-token");
     } else {
       // 未勾选，浏览器关闭就失效
-      setToken("user-token");
+      setToken(token, false, "user-token");
     }
 
-    $toast.success("登录成功 🎉");
-    router.push("/");
+    toast.success("登录成功");
+
+    await userStore.fetchUserInfo();
+    router.replace(redirect.value);
+    // router.push("/");
   } catch (error: any) {
-    $toast.error(error?.message || "登录失败，请检查账号密码");
+    toast.error("登录失败，请检查账号或者密码是否正确");
   }
 };
 

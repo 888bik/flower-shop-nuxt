@@ -1,8 +1,8 @@
 <template>
   <section class="space-y-6">
-    <!-- <h2 class="text-2xl font-bold text-white mb-6">{{ title }}</h2> -->
+    <h2 class="text-2xl font-bold mb-6">{{ title }}</h2>
 
-    <div class="mb-4 mt-6 text-sm text-white/70">
+    <div class="mb-4 mt-6 text-sm">
       <span>共 {{ totalCount }} 件商品</span>
     </div>
     <div
@@ -22,11 +22,14 @@
 <script setup lang="ts">
 import type { ProductItem } from "~/types/api/good";
 import ProductCard from "./ProductCard.vue";
+import { useCartStore } from "#imports";
 interface IProps {
   productListData: ProductItem[];
   title?: string;
   totalCount?: number;
 }
+
+const cartStore = useCartStore();
 
 const {
   productListData,
@@ -34,11 +37,12 @@ const {
   totalCount = 0,
 } = defineProps<IProps>();
 
-function onAdd(p: any) {
-  // 你可以把事件抛上去或直接处理
-  // 这里 mock 一个 toast
+async function onAdd(p: ProductItem) {
   console.log("Add to cart", p);
-  // toast('已加入购物车');
+  await cartStore.addCart(p.id, 1);
+  //重新获取购物车列表
+  cartStore.fetchCart();
+  $toast.success("添加购物车成功");
 }
 
 function onQuick(p: any) {

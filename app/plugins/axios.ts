@@ -30,11 +30,12 @@ export class MyRequest {
     this.instance.interceptors.request.use(
       (config) => {
         //将token添加到请求头中
-        // const token = getToken("admin-token");
-        // if (token) config.headers["token"] = token;
+        const token = getToken("user-token");
+        if (token) config.headers["token"] = token;
 
         return config;
       },
+
       (err) => {
         Promise.reject(err);
       }

@@ -1,7 +1,7 @@
 // utils/token.ts
 import Cookies from "js-cookie";
 
-const DEFAULT_TOKEN_KEY = "auth_token";
+const DEFAULT_TOKEN_KEY = "user-token";
 
 export function setToken(
   token: string,
