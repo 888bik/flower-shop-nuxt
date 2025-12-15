@@ -1,14 +1,15 @@
 <template>
-  <div class="max-w-5xl mx-auto px-6 py-10">
+  <div class="max-w-5xl mx-auto px-6 py-10 theme-pink">
     <!-- 顶部卡片 -->
     <div
-      class="rounded-2xl overflow-hidden bg-[#070707] border border-white/6 shadow-soft-lg"
+      class="rounded-2xl overflow-hidden bg-surface border border-borderColor shadow-soft-lg"
     >
       <div class="grid grid-cols-1 md:grid-cols-3 gap-6 p-6 items-center">
         <!-- Avatar + basic -->
         <div class="flex items-center gap-4">
           <div
-            class="w-28 h-28 rounded-xl overflow-hidden bg-gradient-to-br from-[#111] to-[#0b0b0b] flex items-center justify-center border border-white/6"
+            class="w-28 h-28 rounded-xl overflow-hidden bg-gradient-to-br from-[rgba(0,0,0,0.04)] to-[rgba(0,0,0,0.02)] flex items-center justify-center border"
+            :style="{ borderColor: 'var(--c-border)' }"
           >
             <img
               v-if="profile.user?.avatar"
@@ -17,18 +18,18 @@
               class="w-full h-full object-cover"
               loading="lazy"
             />
-            <div v-else class="text-2xl font-semibold text-white/80">
+            <div v-else class="text-2xl font-semibold text-onSurface">
               {{ initials }}
             </div>
           </div>
 
           <div>
-            <div class="text-xl md:text-2xl font-semibold text-white">
+            <div class="text-xl md:text-2xl font-semibold text-text">
               {{ displayName }}
             </div>
-            <div class="text-sm text-white/60 mt-1">
+            <div class="text-sm text-muted mt-1">
               <span class="inline-block mr-3"
-                >角色：<span class="font-medium text-white">{{
+                >角色：<span class="font-medium text-text">{{
                   profile.user?.role ?? "user"
                 }}</span></span
               >
@@ -39,13 +40,17 @@
             <div class="mt-3 flex gap-2">
               <button
                 @click="goToEdit"
-                class="px-3 py-2 rounded-md bg-[#d4af37] text-black font-medium"
+                class="px-3 py-2 rounded-md bg-primary text-white font-medium"
               >
                 编辑资料
               </button>
               <button
                 @click="goToOrders"
-                class="px-3 py-2 rounded-md border border-white/8 text-white/90"
+                class="px-3 py-2 rounded-md border"
+                :style="{
+                  borderColor: 'var(--c-border)',
+                  color: 'var(--c-text)',
+                }"
               >
                 我的订单
               </button>
@@ -56,28 +61,31 @@
         <!-- 关键统计 -->
         <div class="md:col-span-2 grid grid-cols-3 gap-4">
           <div
-            class="p-4 rounded-lg bg-[#0c0c0c] border border-white/6 flex flex-col"
+            class="p-4 rounded-lg bg-page border flex flex-col"
+            :style="{ borderColor: 'var(--c-border)' }"
           >
-            <div class="text-xs text-white/60">订单总额</div>
-            <div class="mt-2 text-lg font-semibold text-[#d4af37]">
+            <div class="text-xs text-muted">订单总额</div>
+            <div class="mt-2 text-lg font-semibold text-accent">
               ¥{{ formatMoney(profile.stats.orderPrice) }}
             </div>
           </div>
 
           <div
-            class="p-4 rounded-lg bg-[#0c0c0c] border border-white/6 flex flex-col"
+            class="p-4 rounded-lg bg-page border flex flex-col"
+            :style="{ borderColor: 'var(--c-border)' }"
           >
-            <div class="text-xs text-white/60">累计佣金</div>
-            <div class="mt-2 text-lg font-semibold text-[#d4af37]">
+            <div class="text-xs text-muted">累计佣金</div>
+            <div class="mt-2 text-lg font-semibold text-accent">
               ¥{{ formatMoney(profile.stats.commission) }}
             </div>
           </div>
 
           <div
-            class="p-4 rounded-lg bg-[#0c0c0c] border border-white/6 flex flex-col"
+            class="p-4 rounded-lg bg-page border flex flex-col"
+            :style="{ borderColor: 'var(--c-border)' }"
           >
-            <div class="text-xs text-white/60">可提现</div>
-            <div class="mt-2 text-lg font-semibold text-[#d4af37]">
+            <div class="text-xs text-muted">可提现</div>
+            <div class="mt-2 text-lg font-semibold text-accent">
               ¥{{
                 formatMoney(
                   profile.stats.noCashOutPrice ?? profile.stats.cashOutPrice
@@ -90,31 +98,34 @@
 
       <!-- 操作入口 & 简要统计 -->
       <div
-        class="border-t border-white/6 p-4 flex items-center justify-between"
+        class="border-t p-4 flex items-center justify-between"
+        :style="{ borderColor: 'var(--c-border)' }"
       >
         <div class="flex gap-4">
           <button
             @click="goToAddresses"
-            class="px-3 py-2 rounded-md bg-transparent border border-white/8 text-white/90"
+            class="px-3 py-2 rounded-md bg-transparent border"
+            :style="{ borderColor: 'var(--c-border)', color: 'var(--c-text)' }"
           >
             地址管理 ({{ profile.addresses?.length ?? 0 }})
           </button>
           <button
             @click="goToBills"
-            class="px-3 py-2 rounded-md bg-transparent border border-white/8 text-white/90"
+            class="px-3 py-2 rounded-md bg-transparent border"
+            :style="{ borderColor: 'var(--c-border)', color: 'var(--c-text)' }"
           >
             账单 ({{ profile.bills?.length ?? 0 }})
           </button>
           <button
             @click="withdraw"
-            class="px-3 py-2 rounded-md bg-[#d4af37] text-black"
+            class="px-3 py-2 rounded-md bg-accent text-black"
           >
             我要提现
           </button>
         </div>
 
-        <div class="text-sm text-white/60">
-          上次登录：<span class="text-white">{{}}</span>
+        <div class="text-sm text-muted">
+          上次登录：<span class="text-text">{{ lastLoginText }}</span>
         </div>
       </div>
     </div>
@@ -123,13 +134,14 @@
     <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mt-6">
       <!-- 最近账单 -->
       <div
-        class="md:col-span-2 bg-[#070707] border border-white/6 rounded-xl p-4"
+        class="md:col-span-2 bg-surface border rounded-xl p-4"
+        :style="{ borderColor: 'var(--c-border)' }"
       >
         <div class="flex items-center justify-between mb-3">
-          <div class="text-lg font-semibold text-white">最近分佣账单</div>
+          <div class="text-lg font-semibold text-text">最近分佣账单</div>
           <NuxtLink
             to="/profile/bills"
-            class="text-sm text-white/60 hover:text-[#d4af37]"
+            class="text-sm text-muted hover:text-primary"
             >查看全部 →</NuxtLink
           >
         </div>
@@ -139,37 +151,41 @@
             <li
               v-for="b in profile.bills.slice(0, 6)"
               :key="b.id"
-              class="p-3 rounded-md bg-[#0b0b0b] border border-white/4 flex justify-between items-center"
+              class="p-3 rounded-md bg-page border flex justify-between items-center"
+              :style="{ borderColor: 'rgba(0,0,0,0.02)' }"
             >
               <div>
-                <div class="text-sm text-white">{{ billTitle(b) }}</div>
-                <div class="text-xs text-white/60 mt-1">
+                <div class="text-sm text-text">{{ billTitle(b) }}</div>
+                <div class="text-xs text-muted mt-1">
                   状态：{{ billStatusText(b.status) }} · 订单 #{{
                     b.orderId ?? "-"
                   }}
                 </div>
               </div>
               <div class="text-right">
-                <div class="text-sm font-semibold text-[#d4af37]">
+                <div class="text-sm font-semibold text-accent">
                   +¥{{ formatMoney(b.commission) }}
                 </div>
-                <div class="text-xs text-white/60 mt-1">
+                <div class="text-xs text-muted mt-1">
                   {{ timeAgo(b.createTime) }}
                 </div>
               </div>
             </li>
           </ul>
         </div>
-        <div v-else class="text-sm text-white/60">暂无分佣账单</div>
+        <div v-else class="text-sm text-muted">暂无分佣账单</div>
       </div>
 
       <!-- 地址简要 -->
-      <div class="bg-[#070707] border border-white/6 rounded-xl p-4">
+      <div
+        class="bg-surface border rounded-xl p-4"
+        :style="{ borderColor: 'var(--c-border)' }"
+      >
         <div class="flex items-center justify-between mb-3">
-          <div class="text-lg font-semibold text-white">常用地址</div>
+          <div class="text-lg font-semibold text-text">常用地址</div>
           <NuxtLink
             to="/profile/addresses"
-            class="text-sm text-white/60 hover:text-[#d4af37]"
+            class="text-sm text-muted hover:text-primary"
             >管理</NuxtLink
           >
         </div>
@@ -179,16 +195,16 @@
             <li
               v-for="a in profile.addresses.slice(0, 3)"
               :key="a.id"
-              class="text-sm text-white/80"
+              class="text-sm text-text"
             >
               <div class="font-medium">{{ a.name }} · {{ a.phone }}</div>
-              <div class="text-xs text-white/60">
+              <div class="text-xs text-muted">
                 {{ a.province }} {{ a.city }} {{ a.district }} {{ a.address }}
               </div>
             </li>
           </ul>
         </div>
-        <div v-else class="text-sm text-white/60">暂无地址，请前往添加</div>
+        <div v-else class="text-sm text-muted">暂无地址，请前往添加</div>
       </div>
     </div>
 
@@ -196,20 +212,21 @@
     <div class="mt-6 flex justify-end gap-3">
       <button
         @click="logout"
-        class="px-4 py-2 rounded-md bg-transparent border border-white/6 text-white/90"
+        class="px-4 py-2 rounded-md bg-transparent border"
+        :style="{ borderColor: 'var(--c-border)', color: 'var(--c-text)' }"
       >
         退出登录
       </button>
     </div>
 
     <!-- Loading / Error -->
-    <div v-if="loading" class="mt-6 text-center text-white/60">加载中…</div>
+    <div v-if="loading" class="mt-6 text-center text-muted">加载中…</div>
     <div v-if="error" class="mt-6 text-center text-rose-500">{{ error }}</div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from "vue";
+import { ref, computed, onMounted, watchEffect } from "vue";
 import { useRouter } from "vue-router";
 import type { UserProfile } from "~/types/api/user";
 definePageMeta({ layout: "profile" });
@@ -234,7 +251,6 @@ const profile = ref<UserProfile>({
 const loading = ref(false);
 const error = ref<string | null>(null);
 
-// 辅助显示文本
 const displayName = computed(
   () => profile.value.user?.nickname || profile.value.user?.username || "用户"
 );
@@ -244,12 +260,12 @@ const initials = computed(() => {
   return n ? n.slice(0, 1).toUpperCase() : "U";
 });
 
-// const lastLoginText = computed(() => {
-//   const t = profile.value.user?.lastLoginTime;
-//   if (!t) return "—";
-//   const d = new Date(t * 1000);
-//   return d.toLocaleString();
-// });
+const lastLoginText = computed(() => {
+  const t = profile.value.user?.lastLoginTime;
+  if (!t) return "—";
+  const d = new Date(t * 1000);
+  return d.toLocaleString();
+});
 
 function formatMoney(v: any) {
   if (v == null) return "0.00";
@@ -259,7 +275,6 @@ function formatMoney(v: any) {
 }
 
 function billTitle(b: any) {
-  // 简单标题：佣金来源说明（可根据业务改）
   return `分佣 ${b.level === 1 ? "一级" : b.level === 2 ? "二级" : ""}`;
 }
 
@@ -279,7 +294,6 @@ function timeAgo(ts: number | undefined) {
   return `${Math.floor(diff / 86400)}d 前`;
 }
 
-// 跳转 helpers
 function goToEdit() {
   router.push("/profile/edit");
 }
@@ -296,20 +310,17 @@ function withdraw() {
   router.push("/profile/withdraw");
 }
 
-// 登出（示例：清空本地 token 并跳转登录）
 function logout() {
-  // 如果你有后端登出接口，可在此调用
   removeToken("user-token");
   router.push("/login");
 }
-// 页面挂载时同步一次
+
 onMounted(() => {
   if (userStore.userInfo) {
     profile.value = { ...profile.value, ...userStore.userInfo };
   }
 });
 
-// 或者用 watchEffect 自动响应变化
 watchEffect(() => {
   if (userStore.userInfo) {
     profile.value = { ...profile.value, ...userStore.userInfo };
@@ -318,18 +329,22 @@ watchEffect(() => {
 </script>
 
 <style scoped>
-/* small shadow from earlier */
 .shadow-soft-lg {
-  box-shadow: 0 8px 30px rgba(15, 23, 36, 0.12);
+  box-shadow: 0 8px 30px rgba(15, 23, 36, 0.06);
 }
-
-/* 微调：确保卡片在黑底上有分隔线 */
-.border-white\/6 {
-  border-color: rgba(255, 255, 255, 0.06);
+.text-muted {
+  color: var(--c-muted);
 }
-
-/* 保持细节一致 */
-.text-white\/60 {
-  color: rgba(255, 255, 255, 0.6);
+.text-text {
+  color: var(--c-text);
+}
+.bg-surface {
+  background: var(--c-surface);
+}
+.bg-page {
+  background: var(--c-bg);
+}
+.border-borderColor {
+  border-color: var(--c-border);
 }
 </style>

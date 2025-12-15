@@ -1,5 +1,5 @@
 <template>
-  <nav class="nav-site">
+  <nav class="nav-site theme-pink">
     <!-- left -->
     <div class="left flex flex-1 items-center ml-4">
       <LogoIcon />
@@ -41,12 +41,14 @@
       <v-menu>
         <template #activator="{ props }">
           <v-btn v-bind="props" icon>
-            <v-avatar size="36" color="primary"> </v-avatar>
+            <v-avatar size="36" class="bg-primary text-white">
+              {{ 111 }}
+            </v-avatar>
           </v-btn>
         </template>
 
-        <v-list class="bg-[#0b0b0b] px-3">
-          <v-list-item to="/profile" class="hover:text-gold">
+        <v-list class="bg-surface px-3">
+          <v-list-item to="/profile">
             <v-icon start>mdi-account</v-icon>个人中心
           </v-list-item>
 
@@ -76,7 +78,8 @@ const cartStore = useCartStore();
 <style>
 /* nav */
 .nav-site {
-  @apply h-20 flex bg-[#ffffff] shadow-soft-lg  sticky top-0 z-50 border-b-borderColor text-text backdrop-blur-md;
+  @apply h-20 flex bg-[#ffffff] shadow-soft-lg  sticky top-0 z-50 
+  border-b-borderColor text-text backdrop-blur-md;
 }
 .nav-size .nav-link {
   color: var(--c-text);

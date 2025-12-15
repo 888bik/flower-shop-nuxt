@@ -3,18 +3,18 @@ import type { AddCartPayload, CartItem } from "~/types/api/cart";
 
 export default (api: MyRequest) => ({
   addCart(payload: AddCartPayload) {
-    return api.post("/cart/add", { ...payload });
+    return api.post("/user/cart/add", { ...payload });
   },
   removeCart(cartId: number) {
-    return api.delete(`/cart/remove/${cartId}`);
+    return api.delete(`/user/cart/remove/${cartId}`);
   },
   getCartList() {
-    return api.get<CartItem[]>("/cart/list");
+    return api.get<CartItem[]>("/user/cart/list");
   },
   clearCart() {
-    return api.post("/cart/clear");
+    return api.post("/user/cart/clear");
   },
   updateNum(cartId: number, num: number) {
-    return api.post("/cart/updateNum", { cartId, num });
+    return api.post("/user/cart/updateNum", { cartId, num });
   },
 });

@@ -174,12 +174,21 @@
 
 <script setup lang="ts">
 import { ref, computed } from "vue";
-import { useRouter } from "vue-router";
 
-definePageMeta({ layout: "empty" });
+definePageMeta({
+  layout: "empty",
+  middleware: () => {
+    const auth = useAuthStore();
+    if (auth.isLogin) {
+      $toast.success("请先退出登录");
+      return navigateTo("/");
+    }
+  },
+});
+
 const { $api } = useNuxtApp();
 const userStore = useUserStore();
-const toast = useToast();
+const authStore = useAuthStore();
 
 const {
   signupForm,
@@ -213,16 +222,16 @@ const handleRegister = async () => {
     const token = await $api.user.userRegister(signupForm);
 
     if (token) {
-      setToken(token, false, "user-token");
+      authStore.login(token);
 
-      toast.success("注册成功，正在跳转");
+      $toast.success("注册成功，正在跳转");
 
       await userStore.fetchUserInfo();
 
       router.push("/");
     }
   } catch (error: any) {
-    toast.error("登录失败");
+    $toast.error("注册失败，请稍后尝试");
   }
 };
 
@@ -230,25 +239,23 @@ const handleLogin = async () => {
   if (!validateLogin()) return;
 
   try {
-    const { token } = await $api.user.userLogin(
+    const token = await $api.user.userLogin(
       loginForm.username,
       loginForm.password
     );
     if (loginForm.rememberMe) {
       // 勾选“记住我”，保存长期 cookie
-      setToken(token, true, "user-token");
+      authStore.login(token, loginForm.rememberMe);
     } else {
       // 未勾选，浏览器关闭就失效
-      setToken(token, false, "user-token");
+      authStore.login(token);
     }
 
-    toast.success("登录成功");
-
+    $toast.success("登录成功");
     await userStore.fetchUserInfo();
     router.replace(redirect.value);
-    // router.push("/");
   } catch (error: any) {
-    toast.error("登录失败，请检查账号或者密码是否正确");
+    $toast.error("登录失败，请检查账号或者密码是否正确");
   }
 };
 

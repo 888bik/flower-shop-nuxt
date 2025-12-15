@@ -1,5 +1,5 @@
 <template>
-  <footer class="footer-wrap">
+  <footer class="footer-wrap theme-pink">
     <div class="container">
       <div class="service">
         <div
@@ -116,7 +116,7 @@ import footerData from "~/assets/data/footer.json";
 }
 .brand-sub {
   font-size: 12px;
-  color: rgba(243, 244, 246, 0.7);
+  color: #2d2d2d;
 }
 
 /* 小屏适配 */

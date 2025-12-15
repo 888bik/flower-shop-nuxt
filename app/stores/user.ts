@@ -7,23 +7,21 @@ export const useUserStore = defineStore("user", {
   }),
   actions: {
     async fetchUserInfo() {
+      const auth = useAuthStore();
+      if (!auth.isLogin) return;
+
       const { $api } = useNuxtApp();
-      const res: UserProfile = await $api.user.getUserInfo();
-      this.userInfo = res;
+      this.userInfo = await $api.user.getUserInfo();
     },
     async updateUserInfo(payload: UpdateUserPayload) {
       const { $api } = useNuxtApp();
-      const res = await $api.user.updateUser(payload);
+      await $api.user.updateUser(payload);
       // 更新 store 的状态
       if (this.userInfo?.user) {
         this.userInfo.user = { ...this.userInfo.user, ...payload };
       }
     },
-    async logout() {
-      const { $api } = useNuxtApp();
-      const res = await $api.user.userLogout();
-      console.log(res);
-      // 清空用户数据
+    clear() {
       this.userInfo = null;
     },
   },

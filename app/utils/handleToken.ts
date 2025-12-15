@@ -4,9 +4,9 @@ import Cookies from "js-cookie";
 const DEFAULT_TOKEN_KEY = "user-token";
 
 export function setToken(
+  tokenKey = DEFAULT_TOKEN_KEY,
   token: string,
-  rememberMe = false,
-  tokenKey = DEFAULT_TOKEN_KEY
+  rememberMe = false
 ) {
   const options = rememberMe
     ? { expires: 7 as number, secure: true, sameSite: "Lax" as const } // 注意 TS 字面量类型

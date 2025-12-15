@@ -18,13 +18,14 @@
 
 /* ---------- 粉白主题（类切换 .theme-pink） ---------- */
 .theme-pink {
-  --c-bg: #fff9fb;
-  --c-surface: #fff0f5;
-  --c-primary: #ff6fa3;
-  --c-accent: #d4af37;
-  --c-text: #2d2d2d;
-  --c-muted: #7b6f76;
-  --c-on-surface: #111; /* 用于卡片内深色文本 */
+  --c-bg: #fff5f8; /*页面背景*/
+  --c-surface: #ffffff; /*卡片、弹窗背景*/
+  --c-primary: #ff6eb4;
+  --c-border: #f4c2d0; /* 卡片 / 列表边框 */
+  --c-accent: #d4af37; /*金色强调色*/
+  --c-text: #333333; /*主文字*/
+  --c-muted: #666666; /*次级文字*/
+  --c-on-surface: #ff6eb4; /* 用于卡片内深色文本 */
   --c-overlay: rgba(255, 255, 255, 0.6); /* 在浅卡片上若需要浅遮罩（rare） */
 }
 

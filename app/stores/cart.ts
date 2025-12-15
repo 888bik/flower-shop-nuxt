@@ -14,6 +14,9 @@ export const useCartStore = defineStore("cart", {
   },
   actions: {
     async fetchCart() {
+      const auth = useAuthStore();
+      if (!auth.isLogin) return;
+
       this.loading = true;
       const { $api } = useNuxtApp();
       try {

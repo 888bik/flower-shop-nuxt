@@ -17,19 +17,18 @@ export default defineNuxtPlugin((nuxtApp) => {
         blackGold: {
           dark: true,
           colors: {
-            background: "#0b0b0b",
-            surface: "#1c1c1c",
-            primary: "#d4af37", // 金色
-            secondary: "#3a3a3a",
-            accent: "#f5d76e",
+            background: "#fff5f8", //背景
+            surface: "#ffffff", //卡片
+            primary: "#ff6fa3", // 粉色
+            secondary: "#fce4ec", //浅粉
+            accent: "#d4af37", //强调
             error: "#ff5252",
             info: "#2196f3",
             success: "#4caf50",
             warning: "#ff9800",
 
-            // 可选：文本
-            "on-background": "#ffffff",
-            "on-surface": "#ffffff",
+            "on-background": "#333333",
+            "on-surface": "#333333",
           },
         },
       },

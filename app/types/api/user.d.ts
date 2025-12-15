@@ -31,7 +31,7 @@ export interface User {
   userLevelId: number | null;
   createTime: string | null;
   updateTime: string | null;
-  lastLoginTime: string | number;
+  lastLoginTime: number;
   status: number;
   wechatOpenid: string | null;
   shareNum: number;
