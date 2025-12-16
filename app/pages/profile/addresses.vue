@@ -1,7 +1,7 @@
 <template>
-  <div class="max-w-4xl mx-auto px-6 py-10">
+  <div class="max-w-5xl mx-auto px-6 py-10 theme-pink">
     <div class="flex items-center justify-between mb-6">
-      <h2 class="text-2xl font-semibold text-text">地址管理</h2>
+      <h1 class="text-2xl font-semibold text-text mb-6">地址管理</h1>
       <div>
         <v-btn
           @click="openAdd"
@@ -13,7 +13,7 @@
     </div>
 
     <div v-if="loading && addresses.length === 0" class="text-muted">
-      加载中…
+      <three-body-loader />
     </div>
 
     <div v-else>
@@ -143,6 +143,7 @@
 
 <script setup lang="ts">
 import { ref, reactive, onMounted, watch } from "vue";
+import ThreeBodyLoader from "~/assets/base-ui/ThreeBodyLoader.vue";
 import { useAreaCascade } from "~/composables/useAreaCascade";
 import type { AddressItem } from "~/types/api/address";
 
@@ -150,7 +151,6 @@ definePageMeta({ layout: "profile", requiresAuth: true });
 
 const { $api } = useNuxtApp();
 
-// --- area cascade composable (你已有) ---
 const {
   areas,
   provinces,
@@ -198,7 +198,6 @@ const rules = {
   phone: (v: string) => !v || /^1[3-9]\d{9}$/.test(v) || "手机号格式不正确",
 };
 
-// --- helpers to ensure cache exists (avoid duplicate requests) ---
 async function ensureProvincesForArea(areaId: number) {
   if (!cache.provincesByArea.has(areaId)) {
     await loadProvinces(areaId);
@@ -232,7 +231,6 @@ watch(
     cities.value = [];
     districts.value = [];
     if (!areaId) return;
-    // load and let composable write to provinces.value (or we can read cache after)
     await loadProvinces(areaId);
     provinces.value = cache.provincesByArea.get(areaId) ?? [];
   }
@@ -291,8 +289,7 @@ async function fetchList() {
 onMounted(async () => {
   // 先加载大区
   await loadAreas();
-  // prefetch provinces for areas that don't have cache to reduce subsequent loads:
-  // collect area ids that miss provinces
+
   const missingAreaIds = areas.value
     .filter((a: any) => !cache.provincesByArea.has(a.id))
     .map((a: any) => a.id);
@@ -308,7 +305,6 @@ onMounted(async () => {
   await fetchList();
 });
 
-// --- openAdd (清空并打开) ---
 function openAdd() {
   editMode.value = false;
   isEditing.value = false;
@@ -334,7 +330,6 @@ function openAdd() {
   dialog.value = true;
 }
 
-// --- openEdit (稳定回填实现) ---
 async function openEdit(a: AddressItem) {
   editMode.value = true;
   dialog.value = true;
@@ -555,9 +550,6 @@ async function setDefault(a: any) {
 </script>
 
 <style scoped>
-.text-text {
-  color: var(--c-text);
-}
 .text-muted {
   color: var(--c-muted);
 }

@@ -95,7 +95,6 @@
         <ProductGrid
           :product-list-data="displayedProducts"
           :total-count="filteredProducts.length"
-          @add="onAddToCart"
           @quick="openQuickView"
           class="mt-4"
         />
@@ -183,12 +182,6 @@ function selectCategory(id: number | null) {
 
 // 当过滤列表变化时重置分页（分类切换或数据更新都会触发）
 watch(filteredProducts, () => resetDisplay());
-
-// 操作事件
-function onAddToCart(p: ProductItem) {
-  // 这里挂接你的购物车逻辑
-  console.log("加入购物车", p);
-}
 
 function openQuickView(p: ProductItem) {
   console.log("快速预览", p);

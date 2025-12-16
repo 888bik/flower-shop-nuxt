@@ -1,7 +1,7 @@
 <template>
   <nav class="nav-site theme-pink">
     <!-- left -->
-    <div class="left flex flex-1 items-center ml-4">
+    <div class="flex flex-1 items-center ml-4">
       <LogoIcon />
 
       <div class="ml-2">
@@ -13,16 +13,12 @@
     </div>
 
     <!-- center -->
-    <div class="center flex items-center">
-      <input
-        type="search-bar"
-        placeholder="搜索鲜花 / 花盒 / 礼品..."
-        class="search-input"
-      />
+    <div class="flex items-center">
+      <SearchBar />
     </div>
 
     <!-- right -->
-    <div class="right flex flex-1 items-center justify-end mr-4">
+    <div class="flex flex-1 items-center justify-end mr-4">
       <div class="flex items-center px-4">
         <NuxtLink to="/login" class="btn">登录</NuxtLink>
         <NuxtLink to="/login" class="btn">注册</NuxtLink>
@@ -70,6 +66,7 @@
 </template>
 
 <script setup lang="ts">
+import SearchBar from "~/assets/base-ui/SearchBar.vue";
 import LogoIcon from "~/assets/svg/LogoIcon.vue";
 import SearchIcon from "~/assets/svg/SearchIcon.vue";
 const cartStore = useCartStore();

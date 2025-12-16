@@ -5,7 +5,6 @@
       class="rounded-2xl overflow-hidden bg-surface border border-borderColor shadow-soft-lg"
     >
       <div class="grid grid-cols-1 md:grid-cols-3 gap-6 p-6 items-center">
-        <!-- Avatar + basic -->
         <div class="flex items-center gap-4">
           <div
             class="w-28 h-28 rounded-xl overflow-hidden bg-gradient-to-br from-[rgba(0,0,0,0.04)] to-[rgba(0,0,0,0.02)] flex items-center justify-center border"
@@ -96,7 +95,6 @@
         </div>
       </div>
 
-      <!-- 操作入口 & 简要统计 -->
       <div
         class="border-t p-4 flex items-center justify-between"
         :style="{ borderColor: 'var(--c-border)' }"

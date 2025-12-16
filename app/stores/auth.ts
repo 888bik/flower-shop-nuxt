@@ -15,7 +15,7 @@ export const useAuthStore = defineStore("auth", {
 
   actions: {
     init() {
-      const token = getToken("use-token");
+      const token = getToken("user-token");
       this.token = token || null;
       this.initialized = true;
     },
@@ -27,7 +27,7 @@ export const useAuthStore = defineStore("auth", {
 
     logout() {
       this.token = null;
-      removeToken("use-token");
+      removeToken("user-token");
 
       // 清空所有业务 store
       useUserStore().$reset();

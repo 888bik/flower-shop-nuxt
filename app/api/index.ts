@@ -4,6 +4,8 @@ import user from "./user";
 import cart from "./cart";
 import addresses from "./addresses";
 import areas from "./areas";
+import coupon from "./coupon";
+import orders from "./orders";
 
 export default (api: MyRequest) => ({
   goods: goods(api),
@@ -11,4 +13,6 @@ export default (api: MyRequest) => ({
   cart: cart(api),
   addresses: addresses(api),
   areas: areas(api),
+  coupon: coupon(api),
+  orders: orders(api),
 });

@@ -17,7 +17,7 @@
       <v-spacer />
 
       <!-- 返回商城：主色为粉色，hover 保持 gold 点缀 -->
-      <v-btn variant="text" to="/" class="text-primary hover:text-gold">
+      <v-btn variant="text" to="/" class="text-primary">
         <v-icon start class="text-primary">mdi-store</v-icon> 返回商城
       </v-btn>
 

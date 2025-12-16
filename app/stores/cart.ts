@@ -21,7 +21,8 @@ export const useCartStore = defineStore("cart", {
       const { $api } = useNuxtApp();
       try {
         const res = await $api.cart.getCartList();
-        this.list = res || [];
+        // 保留原数组引用，用 splice 更新内容，确保响应式
+        this.list.splice(0, this.list.length, ...res);
       } finally {
         this.loading = false;
       }

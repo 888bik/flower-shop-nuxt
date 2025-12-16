@@ -7,101 +7,113 @@
     </section>
 
     <section class="coupon-list">
-      <div
-        v-for="coupon in coupons"
-        :key="coupon.id"
-        class="coupon-card"
-        :class="{ disabled: coupon.received || coupon.stock === 0 }"
+      <v-empty-state
+        v-if="!loading && coupons.length === 0"
+        icon="mdi-ticket-outline"
       >
-        <!-- Left -->
-        <div class="coupon-left">
-          <div class="price">
-            <span class="unit">¥</span>
-            <span class="num">{{ coupon.amount }}</span>
+        <template #title>
+          <span class="text-[#2d2d2d]"> 暂无优惠券 </span>
+        </template>
+
+        <template #text>
+          <span class="text-[#8b8b8b]"> 先去逛逛商品吧 </span>
+        </template>
+        <template #actions>
+          <v-btn color="primary" variant="tonal" to="/"> 去逛逛商品 </v-btn>
+        </template>
+      </v-empty-state>
+
+      <template v-else>
+        <div
+          v-for="coupon in coupons"
+          :key="coupon.id"
+          class="coupon-card"
+          :class="{ disabled: coupon.received || coupon.stock === 0 }"
+        >
+          <!-- Left -->
+          <div class="coupon-left">
+            <div class="price">
+              <span class="unit">¥</span>
+              <span class="num">
+                {{
+                  coupon.type === 0 ? coupon.value : coupon.value * 10 + "折"
+                }}
+              </span>
+            </div>
+            <div class="limit">满 {{ coupon.minPrice }} 可用</div>
           </div>
-          <div class="limit">满 {{ coupon.limit }} 可用</div>
-        </div>
 
-        <!-- Center -->
-        <div class="coupon-center">
-          <div class="name">{{ coupon.name }}</div>
-          <div class="time">有效期：{{ coupon.time }}</div>
-          <div class="scope">{{ coupon.scope }}</div>
-        </div>
+          <!-- Center -->
+          <div class="coupon-center">
+            <div class="name">{{ coupon.name }}</div>
+            <div class="time">有效期：{{ coupon.time }}</div>
+            <div class="scope">{{ coupon.scope }}</div>
+          </div>
 
-        <!-- Right -->
-        <div class="coupon-right">
-          <button
-            class="receive-btn"
-            :disabled="coupon.received || coupon.stock === 0"
-            @click="receiveCoupon(coupon)"
-          >
-            {{
-              coupon.received
-                ? "已领取"
-                : coupon.stock === 0
-                ? "已抢光"
-                : "立即领取"
-            }}
-          </button>
+          <!-- Right -->
+          <div class="coupon-right">
+            <button
+              class="receive-btn"
+              :disabled="coupon.received || coupon.stock === 0"
+              @click="receiveCoupon(coupon)"
+            >
+              {{
+                coupon.received
+                  ? "已领取"
+                  : coupon.stock === 0
+                  ? "已抢光"
+                  : "立即领取"
+              }}
+            </button>
+          </div>
         </div>
-      </div>
+      </template>
     </section>
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref } from "vue";
+import type { CouponItem } from "~/types/api/coupon";
 
 interface Coupon {
   id: number;
   name: string;
-  amount: number;
-  limit: number;
+  value: number;
+  minPrice: number;
   time: string;
   scope: string;
   stock: number;
   received: boolean;
 }
 
-const coupons = ref<Coupon[]>([
-  {
-    id: 1,
-    name: "新人专享券",
-    amount: 30,
-    limit: 199,
-    time: "2025-01-01 ～ 2025-03-31",
-    scope: "全场鲜花通用",
-    stock: 100,
-    received: false,
-  },
-  {
-    id: 2,
-    name: "情人节专属券",
-    amount: 50,
-    limit: 399,
-    time: "2025-02-01 ～ 2025-02-14",
-    scope: "玫瑰 / 花盒可用",
-    stock: 0,
-    received: false,
-  },
-  {
-    id: 3,
-    name: "会员回馈券",
-    amount: 100,
-    limit: 799,
-    time: "2025-01-10 ～ 2025-04-10",
-    scope: "指定商品",
-    stock: 20,
-    received: true,
-  },
-]);
+const { $api } = useNuxtApp();
 
-function receiveCoupon(coupon: Coupon) {
+const coupons = ref<CouponItem[]>([]);
+const loading = ref(false);
+
+async function receiveCoupon(coupon: Coupon) {
   if (coupon.received || coupon.stock === 0) return;
   coupon.received = true;
-  coupon.stock--;
+  try {
+    $api.coupon.receiveCoupon(coupon.id);
+    // 领取成功后重新刷新列表
+    const res = await $api.coupon.getAllCouponList();
+    coupons.value = res.list;
+  } catch (error: any) {
+    $toast.error("领取失败：" + (error.message || ""));
+  }
 }
+
+onMounted(async () => {
+  loading.value = true;
+  try {
+    const res = await $api.coupon.getAllCouponList();
+    coupons.value = res.list;
+  } finally {
+    loading.value = false;
+  }
+});
 </script>
 
 <style scoped>
@@ -222,7 +234,6 @@ function receiveCoupon(coupon: Coupon) {
   cursor: not-allowed;
 }
 
-/* responsive */
 @media (max-width: 768px) {
   .coupon-card {
     grid-template-columns: 1fr;

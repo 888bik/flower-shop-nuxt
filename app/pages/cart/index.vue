@@ -26,201 +26,217 @@
         </div>
       </div>
 
-      <!-- 空状态 -->
-      <div
-        v-if="cartList.length === 0"
-        class="flex flex-col items-center justify-center py-24 text-muted"
+      <v-empty-state
+        v-if="!cartStore.loading && cartList.length === 0"
+        icon="mdi-cart-outline"
       >
-        <p class="mb-4 text-muted">购物车还是空的</p>
-        <NuxtLink to="/" class="rounded-full bg-primary px-6 py-2 text-white">
-          去逛逛
-        </NuxtLink>
-      </div>
+        <template #title>
+          <span class="text-[#2d2d2d]"> 购物车还是空的 </span>
+        </template>
 
-      <!-- 购物车列表 -->
-      <div v-else class="grid grid-cols-12 gap-6">
-        <!-- 列表区 -->
-        <div class="col-span-12 lg:col-span-8 space-y-4">
-          <!-- 全选条 -->
-          <div
-            class="flex items-center justify-between p-3 rounded-lg border surface-card"
-          >
-            <div class="flex items-center gap-3">
-              <input
-                type="checkbox"
-                class="w-4 h-4"
-                :checked="allChecked"
-                @change="toggleSelectAll"
-                aria-label="全选"
-              />
-              <span class="font-medium">全选</span>
-              <span class="text-sm text-muted"
-                >（{{ cartList.length }} 件，{{
-                  disabledCount
-                }}
-                件不可选）</span
+        <template #text>
+          <span class="text-[#8b8b8b]"> 先去逛逛商品吧 </span>
+        </template>
+        <template #actions>
+          <v-btn color="primary" variant="tonal" to="/"> 去逛逛商品 </v-btn>
+        </template>
+      </v-empty-state>
+
+      <template v-else>
+        <!-- 主布局：左侧独立滚动 + 右侧 sticky 结算栏 -->
+        <div class="checkout-layout grid grid-cols-12 gap-6">
+          <!-- 列表区（左） -->
+          <div class="col-span-12 lg:col-span-8">
+            <!-- 左侧内部滚动容器 -->
+            <div class="left-scroll">
+              <!-- 全选条 -->
+              <div
+                class="flex items-center justify-between p-3 rounded-lg border surface-card mb-4"
               >
-            </div>
+                <div class="flex items-center gap-3">
+                  <input
+                    type="checkbox"
+                    class="w-4 h-4"
+                    :checked="allChecked"
+                    @change="toggleSelectAll"
+                    aria-label="全选"
+                  />
+                  <span class="font-medium">全选</span>
+                  <span class="text-sm text-muted"
+                    >（{{ cartList.length }} 件，{{
+                      disabledCount
+                    }}
+                    件不可选）</span
+                  >
+                </div>
 
-            <div class="text-sm text-muted">
-              已选
-              <span class="font-semibold text-primary">{{ checkedCount }}</span>
-              件
+                <div class="text-sm text-muted">
+                  已选
+                  <span class="font-semibold text-primary">{{
+                    checkedCount
+                  }}</span>
+                  件
+                </div>
+              </div>
+
+              <!-- item 列表 -->
+              <div class="space-y-4">
+                <div
+                  v-for="item in cartList"
+                  :key="item.id"
+                  class="flex gap-4 rounded-xl border p-4 cart-card"
+                  :class="{ 'opacity-50 pointer-events-none': !item.valid }"
+                  role="group"
+                  aria-labelledby="'cart-item-'+item.id"
+                >
+                  <!-- checkbox -->
+                  <div class="flex items-start pt-1">
+                    <input
+                      type="checkbox"
+                      v-model="item.checked"
+                      :disabled="!item.valid"
+                      class="w-5 h-5"
+                    />
+                  </div>
+
+                  <!-- image -->
+                  <NuxtLink
+                    :to="`/goods/${item.goodsId}`"
+                    class="block w-24 h-24 rounded-lg overflow-hidden shrink-0"
+                  >
+                    <img
+                      :src="item.cover"
+                      alt=""
+                      class="w-full h-full object-cover"
+                      loading="lazy"
+                    />
+                  </NuxtLink>
+
+                  <!-- info -->
+                  <div class="flex flex-1 flex-col">
+                    <div class="flex items-start justify-between gap-4">
+                      <div>
+                        <h3
+                          :id="'cart-item-' + item.id"
+                          class="font-medium text-text-primary"
+                        >
+                          <NuxtLink
+                            :to="`/goods/${item.goodsId}`"
+                            class="hover:underline"
+                            >{{ item.title }}</NuxtLink
+                          >
+                        </h3>
+                        <p class="text-sm text-muted mt-1">
+                          {{ item.skuTitle || item.unit || "" }}
+                        </p>
+                      </div>
+
+                      <button
+                        class="text-sm text-muted hover:text-red-600"
+                        @click="confirmRemove(item)"
+                      >
+                        删除
+                      </button>
+                    </div>
+
+                    <div class="mt-auto flex items-center justify-between">
+                      <div>
+                        <div class="text-lg font-semibold text-primary">
+                          ¥{{ formatPrice(item.minPrice) }}
+                        </div>
+                        <div
+                          v-if="
+                            item.minOprice &&
+                            Number(item.minOprice) > Number(item.minPrice)
+                          "
+                          class="text-sm line-through text-muted"
+                        >
+                          ¥{{ formatPrice(item.minOprice) }}
+                        </div>
+                      </div>
+
+                      <!-- qty control -->
+                      <div class="flex items-center gap-2 qty-control">
+                        <button
+                          class="px-3 py-1 rounded border disabled:opacity-40"
+                          :disabled="item.num <= 1"
+                          @click="changeNum(item, -1)"
+                          aria-label="减少数量"
+                        >
+                          −
+                        </button>
+                        <input
+                          type="number"
+                          class="w-14 text-center rounded border p-1"
+                          v-model.number="item.num"
+                          @change="onNumInput(item)"
+                          min="1"
+                          :max="item.stock ?? 9999"
+                          aria-label="数量"
+                        />
+                        <button
+                          class="px-3 py-1 rounded border disabled:opacity-40"
+                          :disabled="item.num >= (item.stock ?? 9999)"
+                          @click="changeNum(item, 1)"
+                          aria-label="增加数量"
+                        >
+                          +
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
 
-          <!-- item -->
-          <div
-            v-for="item in cartList"
-            :key="item.id"
-            class="flex gap-4 rounded-xl border p-4 cart-card"
-            :class="{ 'opacity-50 pointer-events-none': !item.valid }"
-            role="group"
-            aria-labelledby="'cart-item-'+item.id"
-          >
-            <!-- checkbox -->
-            <div class="flex items-start pt-1">
-              <input
-                type="checkbox"
-                v-model="item.checked"
-                :disabled="!item.valid"
-                class="w-5 h-5"
-              />
-            </div>
-
-            <!-- image -->
-            <NuxtLink
-              :to="`/goods/${item.goodsId}`"
-              class="block w-24 h-24 rounded-lg overflow-hidden shrink-0"
-            >
-              <img
-                :src="item.cover"
-                alt=""
-                class="w-full h-full object-cover"
-              />
-            </NuxtLink>
-
-            <!-- info -->
-            <div class="flex flex-1 flex-col">
-              <div class="flex items-start justify-between gap-4">
-                <div>
-                  <h3
-                    :id="'cart-item-' + item.id"
-                    class="font-medium text-text-primary"
-                  >
-                    <NuxtLink
-                      :to="`/goods/${item.goodsId}`"
-                      class="hover:underline"
-                      >{{ item.title }}</NuxtLink
-                    >
-                  </h3>
-                  <p class="text-sm text-muted mt-1">
-                    {{ item.skuTitle || item.unit || "" }}
-                  </p>
-                </div>
-
+          <!-- 结算侧栏（右，sticky） -->
+          <div class="col-span-12 lg:col-span-4">
+            <div class="sticky top-24 rounded-xl border p-6 checkout-card">
+              <div class="flex items-center justify-between">
+                <h3 class="text-lg font-medium text-text-primary">订单结算</h3>
                 <button
-                  class="text-sm text-muted hover:text-red-600"
-                  @click="confirmRemove(item)"
+                  class="text-sm text-muted hover:text-primary"
+                  @click="selectAllValid(true)"
                 >
-                  删除
+                  全选可购买项
                 </button>
               </div>
 
-              <div class="mt-auto flex items-center justify-between">
-                <div>
-                  <div class="text-lg font-semibold text-primary">
-                    ¥{{ formatPrice(item.minPrice) }}
-                  </div>
-                  <div
-                    v-if="
-                      item.minOprice &&
-                      Number(item.minOprice) > Number(item.minPrice)
-                    "
-                    class="text-sm line-through text-muted"
-                  >
-                    ¥{{ formatPrice(item.minOprice) }}
-                  </div>
-                </div>
-
-                <!-- qty control -->
-                <div class="flex items-center gap-2 qty-control">
-                  <button
-                    class="px-3 py-1 rounded border disabled:opacity-40"
-                    :disabled="item.num <= 1"
-                    @click="changeNum(item, -1)"
-                    aria-label="减少数量"
-                  >
-                    −
-                  </button>
-                  <input
-                    type="number"
-                    class="w-14 text-center rounded border p-1"
-                    v-model.number="item.num"
-                    @change="onNumInput(item)"
-                    min="1"
-                    :max="item.stock ?? 9999"
-                    aria-label="数量"
-                  />
-                  <button
-                    class="px-3 py-1 rounded border disabled:opacity-40"
-                    :disabled="item.num >= (item.stock ?? 9999)"
-                    @click="changeNum(item, 1)"
-                    aria-label="增加数量"
-                  >
-                    +
-                  </button>
-                </div>
+              <div class="flex justify-between text-sm">
+                <span>已选商品</span>
+                <span class="font-semibold">{{ checkedCount }} 件</span>
               </div>
-            </div>
-          </div>
-        </div>
 
-        <!-- 结算侧栏 -->
-        <div class="col-span-12 lg:col-span-4">
-          <div class="sticky top-24 rounded-xl border p-6 checkout-card">
-            <div class="flex items-center justify-between">
-              <h3 class="text-lg font-medium text-text-primary">订单结算</h3>
+              <div class="flex justify-between text-sm">
+                <span>小计</span>
+                <span class="font-semibold text-primary"
+                  >¥{{ formatPrice(subtotal) }}</span
+                >
+              </div>
+
+              <div class="text-xs text-muted">运费与税费将在结算页计算</div>
+
               <button
-                class="text-sm text-muted hover:text-primary"
-                @click="selectAllValid(true)"
+                class="mt-2 w-full rounded-full btn-primary"
+                :disabled="checkedCount === 0"
+                @click="proceedToCheckout"
               >
-                全选可购买项
+                去结算（{{ checkedCount }}）
+              </button>
+
+              <button
+                class="w-full rounded-full border py-2 text-muted hover:text-primary"
+                @click="saveForLater"
+                v-if="checkedCount > 0"
+              >
+                保存为稍后购买
               </button>
             </div>
-
-            <div class="flex justify-between text-sm">
-              <span>已选商品</span>
-              <span class="font-semibold">{{ checkedCount }} 件</span>
-            </div>
-
-            <div class="flex justify-between text-sm">
-              <span>小计</span>
-              <span class="font-semibold text-primary"
-                >¥{{ formatPrice(subtotal) }}</span
-              >
-            </div>
-
-            <div class="text-xs text-muted">运费与税费将在结算页计算</div>
-
-            <button
-              class="mt-2 w-full rounded-full btn-primary"
-              :disabled="checkedCount === 0"
-              @click="proceedToCheckout"
-            >
-              去结算（{{ checkedCount }}）
-            </button>
-
-            <button
-              class="w-full rounded-full border py-2 text-muted hover:text-primary"
-              @click="saveForLater"
-              v-if="checkedCount > 0"
-            >
-              保存为稍后购买
-            </button>
           </div>
         </div>
-      </div>
+        <!-- /.checkout-layout -->
+      </template>
     </div>
 
     <!-- mobile bottom bar -->
@@ -500,10 +516,47 @@ function refresh() {
   box-shadow: 0 12px 30px rgba(0, 0, 0, 0.06);
 }
 
-/* 移动端调整 */
+/* ---- 新增：布局 & 左侧滚动区域 ---- */
+
+/* 父容器高度保证（留出 header / 顶部间距，按你项目调整） */
+.checkout-layout {
+  min-height: calc(100vh - 160px); /* 调整这个值以适配你的 header/padding */
+}
+
+/* 左侧滚动区域：桌面启用内部滚动 */
+.left-scroll {
+  max-height: calc(100vh - 220px); /* 留出 header + 页内间距（按需调整） */
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch; /* iOS 平滑滚动 */
+  padding-right: 8px; /* 防止滚动条覆盖内容 */
+}
+
+/* 让右侧结算栏 sticky（保留原 top 值） */
+.checkout-card {
+  position: sticky;
+  top: 24px;
+}
+
+/* 移动端回退：取消左侧内滚动、sidebar 变为普通流 */
 @media (max-width: 1024px) {
+  .left-scroll {
+    max-height: none;
+    overflow: visible;
+    padding-right: 0;
+  }
   .checkout-card {
     position: static;
+    top: auto;
   }
+
+  /* mobile bottom bar 覆盖时给页面底部一点间距 */
+  .min-h-screen {
+    padding-bottom: 84px;
+  }
+}
+
+/* small helpers */
+.text-primary-on {
+  color: var(--c-on-surface);
 }
 </style>

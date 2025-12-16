@@ -1,7 +1,12 @@
 <template>
-  <div>特别</div>
+  <LoadingWords
+    :words="['苹果', '香蕉', '橘子', '西瓜']"
+    label="加载中"
+    :highlightColor="'#ff6fa3'"
+    :duration="5"
+  />
 </template>
 
-<script setup lang="ts"></script>
-
-<style scoped></style>
+<script setup>
+import LoadingWords from "~/assets/base-ui/LoadingWords.vue";
+</script>

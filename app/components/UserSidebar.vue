@@ -26,6 +26,13 @@
     />
 
     <v-list-item
+      to="/profile/mycoupons"
+      prepend-icon="mdi-ticket-percent"
+      title="我的优惠卷"
+      class="hover:text-primary"
+    />
+
+    <v-list-item
       to="/profile/bills"
       prepend-icon="mdi-cash"
       title="账单 / 分佣"
@@ -33,7 +40,7 @@
     />
 
     <v-list-item
-      to="/order"
+      to="/orders"
       prepend-icon="mdi-receipt-text"
       title="我的订单"
       class="hover:text-primary"
