@@ -33,6 +33,13 @@
     />
 
     <v-list-item
+      to="/profile/myfavorites"
+      prepend-icon="mdi-heart"
+      title="我的收藏"
+      class="hover:text-primary"
+    />
+
+    <v-list-item
       to="/profile/bills"
       prepend-icon="mdi-cash"
       title="账单 / 分佣"
@@ -57,9 +64,7 @@
   </v-list>
 </template>
 
-<script setup lang="ts">
-// 纯展示组件，无逻辑改动
-</script>
+<script setup lang="ts"></script>
 
 <style scoped>
 .text-onSurface {

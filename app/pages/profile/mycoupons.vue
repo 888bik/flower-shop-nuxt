@@ -20,7 +20,9 @@
     </div>
 
     <!-- Coupon List -->
-    <div v-if="loading" class="text-center text-muted">加载中...</div>
+    <div v-if="loading" class="flex justify-center py-20">
+      <ThreeBodyLoader class="w-16 h-16" />
+    </div>
     <div v-else>
       <div v-if="filteredCoupons.length">
         <div
@@ -62,8 +64,8 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted } from "vue";
+import ThreeBodyLoader from "~/assets/base-ui/ThreeBodyLoader.vue";
 import type { CouponItem } from "~/types/api/coupon";
-import { useUserStore } from "~/stores/user";
 
 definePageMeta({ layout: "profile" });
 
@@ -95,12 +97,6 @@ async function loadCoupons() {
   } finally {
     loading.value = false;
   }
-}
-
-function receiveCoupon(c: CouponItem) {
-  if (c.received || c.stock === 0) return;
-  c.received = true;
-  c.stock--;
 }
 
 onMounted(() => {

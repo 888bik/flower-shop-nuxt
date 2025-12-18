@@ -121,7 +121,7 @@
 import { ref, computed, watch, onMounted } from "vue";
 import BannerCarousel from "~/components/BannerCarousel.vue";
 import ProductGrid from "~/components/ProductGrid.vue";
-import type { ProductItem } from "~/types/api/good";
+import type { ProductItem } from "~/types/api/goods";
 
 const { $api } = useNuxtApp();
 

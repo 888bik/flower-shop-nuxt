@@ -1,5 +1,10 @@
 import type { MyRequest } from "~/plugins/axios";
-import type { CreateUserPayload, UpdateUserPayload } from "~/types/api/user";
+import type {
+  CreateUserPayload,
+  FavoritesGoodsList,
+  toggleFavoriteResponse,
+  UpdateUserPayload,
+} from "~/types/api/user";
 
 export default (api: MyRequest) => ({
   userRegister(payload: CreateUserPayload) {
@@ -19,5 +24,16 @@ export default (api: MyRequest) => ({
   },
   userLogout() {
     return api.post("/user/logout");
+  },
+  toggleGoodsFavorite(id: number, status: boolean) {
+    return api.post<toggleFavoriteResponse>(
+      `/user/favorite/${id}?favorite=${status}`
+    );
+  },
+  checkGoodsFavorite(id: number) {
+    return api.get<boolean>(`/user/favorite/${id}`);
+  },
+  getFavoritesGoods() {
+    return api.get<FavoritesGoodsList>("/user/favorites");
   },
 });

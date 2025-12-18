@@ -1,7 +1,9 @@
 <template>
   <div class="min-h-screen bg-page py-10 text-text">
     <div class="mx-auto max-w-6xl px-4">
-      <h1 class="text-2xl font-semibold text-primary-on mb-6">订单结算</h1>
+      <h1 class="text-2xl font-semibold text-primary-on mb-6 text-gold">
+        订单结算
+      </h1>
 
       <!-- 主布局：左侧独立滚动区 + 右侧 sticky sidebar -->
       <div class="checkout-layout grid grid-cols-12 gap-6">
@@ -393,7 +395,7 @@ import { useRouter } from "vue-router";
 import { useCartStore } from "~/stores/cart";
 import type { CartItem as CartItemType } from "~/types/api/cart";
 import type { CouponItem } from "~/types/api/coupon";
-import type { AddressItem } from "~/types/api/address";
+import type { AddressItem } from "~/types/api/addresses";
 
 const router = useRouter();
 const route = useRoute();

@@ -63,3 +63,25 @@ export interface UserProfile {
   user: User | null;
   info: any | null;
 }
+
+export interface FavoriteGoodsItem {
+  id: number;
+  title: string;
+  categoryId: number;
+  cover: string;
+  minPrice: number;
+  minOprice: number;
+  unit: string;
+  stock: number;
+  likeCount: number;
+}
+export interface FavoritesGoodsList {
+  list: FavoriteGoodsItem[];
+  totalCount: number;
+}
+
+export interface toggleFavoriteResponse {
+  likeCount: number;
+  message: string;
+  isFavorite: boolean;
+}

@@ -3,6 +3,7 @@
     class="product-card group"
     :aria-labelledby="`p-${product.id}-title`"
     role="article"
+    @click="onCardClick"
   >
     <!-- 图片区 -->
     <div class="card-media">
@@ -14,11 +15,11 @@
       />
 
       <!-- 小缩略图切换 -->
-      <div v-if="product.banners?.length > 1" class="thumbs">
+      <div v-if="product.banners?.length > 1" class="thumbs" @click.stop>
         <button
           v-for="(img, i) in product.banners"
           :key="i"
-          @click.stop="currentImg = i"
+          @click="currentImg = i"
           :class="['thumb', { active: currentImg === i }]"
           :aria-label="`切换到第 ${i + 1} 张`"
         >
@@ -72,7 +73,7 @@
           <button
             :disabled="product.stock === 0"
             class="add-btn"
-            @click="onAddToCart"
+            @click.stop="onAddToCart"
             aria-label="加入购物车"
           >
             加入购物车
@@ -85,16 +86,20 @@
 
 <script setup lang="ts">
 import { ref, computed } from "vue";
-import type { ProductItem } from "~/types/api/good";
+import type { ProductItem } from "~/types/api/goods";
 
 interface IProps {
   product: ProductItem;
 }
-const props = defineProps<IProps>();
-const emit = defineEmits<{
+
+interface IEmits {
   (e: "add", p: ProductItem): void;
   (e: "quick", p: ProductItem): void;
-}>();
+  (e: "click", p: ProductItem): void;
+}
+
+const props = defineProps<IProps>();
+const emit = defineEmits<IEmits>();
 
 const currentImg = ref(0);
 const displayImage = computed(() =>
@@ -117,10 +122,12 @@ const discountPercent = computed(() => {
 function onAddToCart() {
   emit("add", props.product);
 }
+function onCardClick() {
+  emit("click", props.product);
+}
 </script>
 
 <style scoped>
-/* 容器：固定圆角（不要在 hover 时改变）并启用合成层 */
 .product-card {
   border-radius: 12px;
   overflow: hidden;
@@ -133,13 +140,11 @@ function onAddToCart() {
   flex-direction: column;
 }
 
-/* hover 只变换 translateY 与 shadow，不改 radius/border */
 .product-card:hover {
   transform: translateY(-6px);
   box-shadow: 0 14px 40px rgba(2, 6, 23, 0.36);
 }
 
-/* 图片区高度缩短，避免卡片过长 */
 .card-media {
   position: relative;
   height: 280px;
@@ -158,7 +163,6 @@ function onAddToCart() {
   transform: scale(1.03);
 }
 
-/* 缩略切换按钮（极小） */
 .thumbs {
   position: absolute;
   left: 8px;
@@ -182,6 +186,9 @@ function onAddToCart() {
   justify-content: center;
   cursor: pointer;
   background: transparent;
+  &:hover {
+    border: 3px solid rgba(255, 255, 255, 0.08);
+  }
 }
 .thumb-img {
   width: 100%;

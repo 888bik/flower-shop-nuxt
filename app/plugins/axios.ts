@@ -6,6 +6,7 @@ import type {
   InternalAxiosRequestConfig,
 } from "axios";
 import apiModules from "~/api";
+import type { ApiResponse } from "~/types/common/api";
 
 export interface IInterceptors {
   requestSuccessFn?: (
@@ -43,13 +44,17 @@ export class MyRequest {
     //响应拦截器
     this.instance.interceptors.response.use(
       (res: AxiosResponse) => {
-        return res.data.data;
-        // return res;
+        const data = res.data as ApiResponse<any>;
+        if (!data.success) {
+          return Promise.reject(data);
+        }
+        return data.data;
       },
       (err) => {
-        const msg = err?.response?.data?.msg || "请求失败";
-        $toast.success("请求错误");
-        return Promise.reject(err);
+        // const msg = err?.response?.data?.msg || "请求失败";
+        // $toast.success("请求错误");
+        // return Promise.reject(err);
+        Promise.reject(err);
       }
     );
 

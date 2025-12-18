@@ -12,8 +12,11 @@
       </div>
     </div>
 
-    <div v-if="loading && addresses.length === 0" class="text-muted">
-      <three-body-loader />
+    <div
+      v-if="loading && addresses.length === 0"
+      class="flex justify-center py-20"
+    >
+      <three-body-loader class="w-16 h-16" />
     </div>
 
     <div v-else>
@@ -145,7 +148,7 @@
 import { ref, reactive, onMounted, watch } from "vue";
 import ThreeBodyLoader from "~/assets/base-ui/ThreeBodyLoader.vue";
 import { useAreaCascade } from "~/composables/useAreaCascade";
-import type { AddressItem } from "~/types/api/address";
+import type { AddressItem } from "~/types/api/addresses";
 
 definePageMeta({ layout: "profile", requiresAuth: true });
 
@@ -197,24 +200,6 @@ const rules = {
   required: (v: string) => !!v || "必填项",
   phone: (v: string) => !v || /^1[3-9]\d{9}$/.test(v) || "手机号格式不正确",
 };
-
-async function ensureProvincesForArea(areaId: number) {
-  if (!cache.provincesByArea.has(areaId)) {
-    await loadProvinces(areaId);
-  }
-}
-
-async function ensureCitiesForProvince(provinceId: number) {
-  if (!cache.citiesByProvince.has(provinceId)) {
-    await loadCities(provinceId);
-  }
-}
-
-async function ensureDistrictsForCity(cityId: number) {
-  if (!cache.districtsByCity.has(cityId)) {
-    await loadDistricts(cityId);
-  }
-}
 
 watch(
   () => form.areaId,
@@ -294,7 +279,6 @@ onMounted(async () => {
     .filter((a: any) => !cache.provincesByArea.has(a.id))
     .map((a: any) => a.id);
   if (missingAreaIds.length) {
-    // 并行加载这些 area 的 provinces（hook 内应做缓存保护）
     try {
       await loadProvincesForAreas(missingAreaIds);
     } catch (e) {
@@ -538,7 +522,6 @@ async function onDelete(a: any) {
 
 async function setDefault(a: any) {
   try {
-    // 你可以选择乐观更新，这里先调用接口再刷新列表（简单、稳妥）
     await $api.addresses.setAddressDefault(a.id);
     $toast?.success?.("已设为默认地址");
     await fetchList();

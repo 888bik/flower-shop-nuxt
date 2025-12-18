@@ -14,13 +14,14 @@
         :product="p"
         @add="onAdd"
         @quick="onQuick"
+        @click="onClick"
       />
     </div>
   </section>
 </template>
 
 <script setup lang="ts">
-import type { ProductItem } from "~/types/api/good";
+import type { ProductItem } from "~/types/api/goods";
 import ProductCard from "./ProductCard.vue";
 import { useCartStore } from "#imports";
 interface IProps {
@@ -29,6 +30,7 @@ interface IProps {
   totalCount?: number;
 }
 
+const router = useRouter();
 const cartStore = useCartStore();
 
 const {
@@ -38,15 +40,17 @@ const {
 } = defineProps<IProps>();
 
 async function onAdd(p: ProductItem) {
-  console.log("Add to cart", p);
   await cartStore.addCart(p.id, 1);
   //重新获取购物车列表
   cartStore.fetchCart();
   $toast.success("添加购物车成功");
 }
 
+function onClick(p: ProductItem) {
+  router.push(`/detail/${p.id}`);
+}
+
 function onQuick(p: any) {
   console.log("Quick view", p);
-  // 打开模态
 }
 </script>

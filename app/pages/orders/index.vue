@@ -12,8 +12,8 @@
       </div>
     </div>
 
-    <div v-if="loading" class="text-center text-muted">
-      <ThreeBodyLoader />
+    <div v-if="loading" class="flex justify-center py-20">
+      <ThreeBodyLoader class="w-16 h-16" />
     </div>
     <div v-else>
       <div v-if="orders?.length === 0" class="text-center text-muted py-12">

@@ -4,7 +4,7 @@ import type {
   AddressListResponse,
   CreateAddressPayload,
   UpdateAddressPayload,
-} from "~/types/api/address";
+} from "~/types/api/addresses";
 
 export default (api: MyRequest) => ({
   createAddress(payload: CreateAddressPayload) {

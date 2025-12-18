@@ -177,8 +177,6 @@ import {
   ref,
   onMounted,
   onBeforeUnmount,
-  computed,
-  registerRuntimeCompiler,
 } from "vue";
 import {
   orderStatusText,
