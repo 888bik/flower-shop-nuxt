@@ -74,18 +74,67 @@
               </div>
 
               <div class="flex justify-end gap-2 mt-2">
-                <NuxtLink
+                <v-btn
                   v-if="o.payStatus === 'unpaid'"
                   :to="`/pay/${o.orderId}`"
-                  class="px-3 py-1 rounded bg-primary text-white"
-                  >去支付</NuxtLink
+                  color="pink lighten-1"
+                  class="text-white px-4 py-1 rounded"
+                  elevation="2"
                 >
-                <NuxtLink
+                  去支付
+                </v-btn>
+
+                <!-- 查看详情 -->
+                <v-btn
                   :to="`/orders/${o.orderId}`"
-                  class="px-3 py-1 rounded border hover:text-primary"
-                  :style="{ borderColor: 'var(--c-border)' }"
-                  >查看详情</NuxtLink
+                  outlined
+                  color="pink"
+                  class="px-4 py-1 rounded"
                 >
+                  查看详情
+                </v-btn>
+
+                <!-- 查看物流 -->
+                <v-btn
+                  v-if="o.payStatus !== 'unpaid' && o.payStatus !== 'closed'"
+                  @click="openShipInfoModal(o.orderId)"
+                  outlined
+                  :loading="btnLoading"
+                  color="blue"
+                  class="px-4 py-1 rounded"
+                >
+                  查看物流
+                </v-btn>
+
+                <v-btn
+                  v-if="
+                    o.payStatus !== 'unpaid' &&
+                    o.payStatus !== 'closed' &&
+                    o.shipStatus !== 'received'
+                  "
+                  color="green"
+                  class="text-white px-4 py-1 rounded"
+                  elevation="2"
+                  @click="openConfirmReceive(o.orderId)"
+                >
+                  确认收货
+                </v-btn>
+
+                <!-- 去评价 -->
+                <v-btn
+                  v-if="
+                    o.payStatus !== 'unpaid' &&
+                    o.payStatus !== 'closed' &&
+                    o.shipStatus === 'received' &&
+                    !o.reviewed
+                  "
+                  @click="$router.push(`/orders/${o.orderId}/review`)"
+                  color="orange"
+                  class="text-white px-4 py-1 rounded"
+                  elevation="2"
+                >
+                  去评价
+                </v-btn>
               </div>
             </div>
           </div>
@@ -104,6 +153,30 @@
         </div>
       </div>
     </div>
+    <!-- 物流弹窗 -->
+    <ShipInfoModal ref="shipInfoModalRef" />
+
+    <!-- 确认收货对话框 -->
+    <v-dialog v-model="confirmDialogVisible" max-width="420">
+      <v-card>
+        <v-card-title class="font-medium">确认收货</v-card-title>
+        <v-card-text>
+          <div>
+            确认收到该订单的商品吗？确认后订单将标记为已收货，无法撤销。
+          </div>
+        </v-card-text>
+        <v-card-actions>
+          <v-spacer />
+          <v-btn text @click="closeConfirm">取消</v-btn>
+          <v-btn
+            color="green"
+            :loading="confirmLoading"
+            @click="doConfirmReceive"
+            >确认收货</v-btn
+          >
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
   </div>
 </template>
 
@@ -117,9 +190,18 @@ import {
   orderStatusText,
   orderStatusClass,
 } from "~/utils/utils";
+import ShipInfoModal from "./_components/shipInfoModal.vue";
 definePageMeta({ layout: "profile", requiresAuth: true });
 
 const { $api } = useNuxtApp();
+const shipInfoModalRef = ref();
+const btnLoading = ref(false);
+const reviewDialogVisible = ref(false);
+const currentOrderId = ref<number | null>(null);
+const router = useRouter();
+
+const confirmDialogVisible = ref(false);
+const confirmLoading = ref(false);
 const {
   orders,
   loading,
@@ -134,6 +216,39 @@ const {
 
 function getRemaining(orderId: number): number {
   return remainingMap.value[orderId] ?? 0;
+}
+async function openShipInfoModal(orderId: number) {
+  currentOrderId.value = orderId;
+  shipInfoModalRef.value
+    ?.open(orderId)
+    .finally(() => (btnLoading.value = false));
+}
+
+function handleReviewSubmitted() {
+  // 提交成功后刷新列表或更新对应订单状态
+  loadList(true);
+  reviewDialogVisible.value = false;
+}
+
+function openConfirmReceive(orderId: number) {
+  currentOrderId.value = orderId;
+  confirmDialogVisible.value = true;
+}
+
+function closeConfirm() {
+  confirmDialogVisible.value = false;
+}
+
+async function doConfirmReceive() {
+  if (!currentOrderId.value) return;
+  try {
+    await $api.orders.confirmReceive(currentOrderId.value);
+    $toast.success("确认收货成功");
+  } catch (error) {
+    $toast.error("操作失败，请重新尝试");
+  } finally {
+    confirmDialogVisible.value = false;
+  }
 }
 
 onMounted(() => loadList(true));

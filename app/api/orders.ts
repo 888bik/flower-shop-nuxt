@@ -4,6 +4,8 @@ import type {
   CreateOrderResponse,
   OrderDetailResponse,
   OrderListResponse,
+  ShipDataResponse,
+  submitReviewPayload,
 } from "~/types/api/orders";
 
 export default (api: MyRequest) => ({
@@ -23,5 +25,17 @@ export default (api: MyRequest) => ({
   },
   cancelOrder(id: number) {
     return api.post(`/user/orders/${id}/cancel`);
+  },
+  getShipData(id: number) {
+    return api.get<ShipDataResponse>(`/user/orders/${id}/ship`);
+  },
+  confirmReceive(id: number) {
+    return api.post(`/user/orders/${id}/receive`);
+  },
+  getReviewItems(id: number) {
+    return api.get(`/user/orders/${id}/review/items`);
+  },
+  submitReview(id: number, payload: submitReviewPayload) {
+    return api.post(`/user/orders/${id}/review`, { ...payload });
   },
 });

@@ -60,16 +60,46 @@ export interface OrderListItem {
   totalPrice: number;
   shipStatus: string;
   createTime: number;
-  payStatus: string;
+  payStatus: payStatus;
   address: OrderAddress;
   items: OrderItem[];
   subtotal: number;
   shippingFee: number;
   discount: number;
   expireTime: number | null;
+  reviewed: boolean;
 }
 
 export interface OrderListResponse {
   list: OrderListItem[];
   totalCount: number;
+}
+
+export interface ShipDataResponse {
+  company: {
+    id: number;
+    name: string;
+    code: string;
+  };
+  shipping: {
+    fee: number;
+    name: string;
+    type: string;
+  };
+  history: {
+    time: string;
+    status: string;
+    location: string;
+    desc: string;
+  }[];
+  trackingNo: string;
+}
+
+export interface submitReviewPayload {
+  anonymous: boolean;
+  items: {
+    orderItemId: number;
+    rating: number;
+    content: string;
+  }[];
 }
