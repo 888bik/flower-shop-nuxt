@@ -50,7 +50,6 @@
             <div
               class="hidden md:block ml-8 w-full h-[220px] rounded-lg shadow-lg"
             >
-              <!-- 把你的装饰图放到 /public/images/hero-flower.jpg -->
               <img
                 src="/images/hero-flower.webp"
                 alt="hero"
@@ -106,11 +105,15 @@
             @click="loadMore"
             class="px-6 py-2 rounded-md font-medium shadow"
             :style="{ background: 'var(--c-primary)', color: '#fff' }"
+            :disabled="loadMoreLoading"
           >
-            加载更多
+            <span v-if="!loadMoreLoading" class="text-sm text-muted">
+              加载更多
+            </span>
+            <span v-else>
+              <ThreeBodyLoader />
+            </span>
           </button>
-
-          <div v-else class="text-sm text-muted">已加载全部</div>
         </div>
       </main>
     </div>
@@ -119,6 +122,7 @@
 
 <script setup lang="ts">
 import { ref, computed, watch, onMounted } from "vue";
+import ThreeBodyLoader from "~/assets/base-ui/ThreeBodyLoader.vue";
 import BannerCarousel from "~/components/BannerCarousel.vue";
 import ProductGrid from "~/components/ProductGrid.vue";
 import type { ProductItem } from "~/types/api/goods";
@@ -145,11 +149,12 @@ const filteredProducts = computed(() => {
   );
 });
 
+const loadMoreLoading = ref(false);
+
 // 获取商品和分类（客户端）
 onMounted(async () => {
   try {
-    // 推荐：后端分页接口也可以按需调用；这里为了 UI 立即响应我们一次拉全部（以你当前后端为准）
-    const res = await $api.goods.getProductList();
+    const res = await $api.goods.getProductList(currentPage.value, pageSize);
     allProducts.value = res?.list ?? [];
     // 初始化第一页显示
     resetDisplay();
@@ -168,12 +173,19 @@ function resetDisplay() {
 }
 
 // 加载更多
-function loadMore() {
-  currentPage.value++;
-  const start = (currentPage.value - 1) * pageSize;
-  const end = currentPage.value * pageSize;
-  displayedProducts.value.push(...filteredProducts.value.slice(start, end));
-}
+const loadMore = () => {
+  if (loadMoreLoading.value) return;
+  loadMoreLoading.value = true;
+  try {
+    const start = (currentPage.value - 1) * pageSize;
+    const end = currentPage.value * pageSize;
+
+    displayedProducts.value.push(...filteredProducts.value.slice(start, end));
+    currentPage.value++;
+  } finally {
+    loadMoreLoading.value = false;
+  }
+};
 
 // 分类切换
 function selectCategory(id: number | null) {

@@ -1,12 +1,9 @@
 <template>
-  <div>
-    <p>Count: {{ counter.count }}</p>
-    <button @click="counter.increment()">+1</button>
-  </div>
+  <div></div>
 </template>
 
 <script setup lang="ts">
-const counter = useCounterStore();
+import ProductCardV2 from "~/components/ProductCard-v2.vue";
 </script>
 
 <style scoped></style>

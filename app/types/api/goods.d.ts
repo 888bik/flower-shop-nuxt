@@ -178,3 +178,24 @@ export interface GoodsDetailResponse {
   likeCount: number;
   isFavorite: boolean;
 }
+
+export interface searchItem {
+  id: number;
+  title: string;
+  cover: string;
+  minPrice: number;
+  minOprice: number;
+  rating: number;
+  saleCount: number;
+  reviewCount: number;
+  description: string;
+  unit: string;
+}
+
+export interface searchResponse {
+  records: searchItem[];
+  total: number;
+  size: number;
+  current: number;
+  pages: number;
+}

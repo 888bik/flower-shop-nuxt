@@ -1,3 +1,43 @@
+<template>
+  <div class="InputContainer">
+    <input
+      placeholder="搜索鲜花 / 花盒 / 礼品..."
+      v-model="innerValue"
+      id="input"
+      class="input"
+      name="text"
+      type="text"
+      @keyup.enter="onSearch"
+      @click:append-inner="onSearch"
+      @click:clear="onClear"
+    />
+  </div>
+</template>
+<script lang="ts" setup>
+import { ref, watch, toRefs } from "vue";
+
+const props = defineProps({
+  modelValue: { type: String, default: "" },
+});
+const emit = defineEmits(["update:modelValue", "search"]);
+
+const { modelValue } = toRefs(props);
+const innerValue = ref(modelValue.value);
+
+watch(modelValue, (v) => (innerValue.value = v));
+watch(innerValue, (v) => emit("update:modelValue", v));
+
+function onSearch() {
+  const kw = (innerValue.value || "").trim();
+  emit("search", kw);
+}
+
+function onClear() {
+  innerValue.value = "";
+  emit("search", "");
+}
+</script>
+
 <style scoped>
 .InputContainer {
   width: 210px;
@@ -30,15 +70,3 @@
   font-size: 13.4px;
 }
 </style>
-
-<template>
-  <div class="InputContainer">
-    <input
-      placeholder="搜索鲜花 / 花盒 / 礼品..."
-      id="input"
-      class="input"
-      name="text"
-      type="text"
-    />
-  </div>
-</template>

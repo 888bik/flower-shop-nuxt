@@ -22,7 +22,7 @@
 
 <script setup lang="ts">
 import type { ProductItem } from "~/types/api/goods";
-import ProductCard from "./ProductCard.vue";
+import ProductCard from "./ProductCard-v1.vue";
 import { useCartStore } from "#imports";
 interface IProps {
   productListData: ProductItem[];

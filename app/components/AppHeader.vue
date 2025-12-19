@@ -14,7 +14,7 @@
 
     <!-- center -->
     <div class="flex items-center">
-      <SearchBar />
+      <SearchBar v-model="keyword" @search="onSearch" />
     </div>
 
     <!-- right -->
@@ -70,6 +70,15 @@ import SearchBar from "~/assets/base-ui/SearchBar.vue";
 import LogoIcon from "~/assets/svg/LogoIcon.vue";
 import SearchIcon from "~/assets/svg/SearchIcon.vue";
 const cartStore = useCartStore();
+
+const keyword = ref("");
+const router = useRouter();
+
+const onSearch = (kw: string) => {
+  const k = (kw || "").trim();
+  if (!k) return;
+  router.push({ path: "/search", query: { keyword: k } });
+};
 </script>
 
 <style>
