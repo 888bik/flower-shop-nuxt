@@ -215,7 +215,7 @@ function cardStyle(bg: string) {
 }
 </script>
 
-<style scoped lang="postcss">
+<style scoped>
 /* 基础 card 风格抽离，使用 @apply 简化 */
 .card {
   @apply rounded-2xl overflow-hidden;

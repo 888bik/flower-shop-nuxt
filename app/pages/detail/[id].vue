@@ -10,7 +10,12 @@
       :images-data="detailInfo?.banners ?? []"
       @require-login="openLoginDialog"
     />
-    <Info />
+
+    <Info
+      v-if="detailInfo?.sales"
+      :sales="detailInfo?.sales"
+      :review-data="{ list: reviewInfo.list, total: reviewInfo.total }"
+    />
   </div>
 
   <v-dialog v-model="dialogVisible" width="auto">
@@ -35,6 +40,8 @@ import type { GoodsDetailResponse } from "~/types/api/goods";
 import Images from "./_components/images.vue";
 import Info from "./_components/info.vue";
 import ThreeBodyLoader from "~/assets/base-ui/ThreeBodyLoader.vue";
+import type { ReviewItem, ReviewListResponse } from "~/types/api/review";
+import { flipSide } from "vuetify/lib/util/anchor.mjs";
 
 const { $api } = useNuxtApp();
 const route = useRoute();
@@ -49,15 +56,46 @@ const isFavorite = ref(false);
 
 const dialogVisible = ref(false);
 
+const reviewInfo = ref<ReviewListResponse>({
+  total: 0,
+  page: 1,
+  pageSize: 10,
+  avgRating: 0,
+  list: [],
+});
+const loadingReviews = ref(false);
+
 const getGoodsDetailInfo = async () => {
   try {
     loading.value = true;
     detailInfo.value = await $api.goods.getGoodsDetail(goodsId.value);
+    console.log(detailInfo.value);
   } catch (error) {
     $toast.error("获取数据失败");
   } finally {
     loading.value = false;
   }
+};
+const getGoodsReviewList = async (append = false) => {
+  if (loadingReviews.value) return;
+  loadingReviews.value = true;
+  try {
+    const res = await $api.review.getReviewList(goodsId.value);
+    if (append) {
+      reviewInfo.value.list.push(...res.list);
+    } else {
+      reviewInfo.value = res;
+    }
+  } catch (error) {
+    $toast.error(`获取数据失败`);
+  } finally {
+    loadingReviews.value = false;
+  }
+};
+const loadMoreReviews = () => {
+  if (reviewInfo.value.list.length >= reviewInfo.value.total) return;
+  reviewInfo.value.page++;
+  getGoodsReviewList(true);
 };
 
 const openLoginDialog = () => {
@@ -86,6 +124,7 @@ provide("goodsFavorite", {
 
 onMounted(() => {
   getGoodsDetailInfo();
+  getGoodsReviewList();
 });
 </script>
 

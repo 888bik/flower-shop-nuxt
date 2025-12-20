@@ -1,3 +1,11 @@
+import dayjs from "dayjs";
+import relativeTime from "dayjs/plugin/relativeTime";
+import "dayjs/locale/zh-cn";
+
+// 扩展插件
+dayjs.extend(relativeTime);
+dayjs.locale("zh-cn");
+
 export function formatPrice(v: any) {
   const n = Number(v ?? 0);
   if (Number.isNaN(n)) return "0.00";
@@ -51,4 +59,25 @@ export function formatExpire(sec: number) {
       "0"
     )}:${String(s).padStart(2, "0")}`;
   return `${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`;
+}
+/**
+ * 将秒级时间戳或毫秒级时间戳转为“几小时前/几天前”等格式
+ * @param timestamp 秒级或毫秒级时间戳
+ * @returns 相对时间字符串
+ */
+export function timeAgo(timestamp: number | string): string {
+  if (!timestamp) return "";
+
+  let time: dayjs.Dayjs;
+
+  // 判断是秒级还是毫秒级
+  const t = Number(timestamp);
+  if (t < 1_000_000_000_000) {
+    // 秒级 -> 转为毫秒
+    time = dayjs(t * 1000);
+  } else {
+    time = dayjs(t);
+  }
+
+  return time.fromNow(); // 输出 "3 天前"、"2 小时前" 等
 }

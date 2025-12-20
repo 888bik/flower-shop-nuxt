@@ -11,7 +11,6 @@
         navigation
       >
         <SwiperSlide v-for="(slide, index) in slides" :key="index">
-          <!-- 这里内部主体使用 h-full，确保填满 slide -->
           <div
             class="w-full h-full bg-cover bg-center flex items-center justify-center relative"
             :style="{ backgroundImage: `url(${slide.image})` }"

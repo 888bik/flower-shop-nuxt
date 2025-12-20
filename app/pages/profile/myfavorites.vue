@@ -11,31 +11,22 @@
         你还没有收藏的商品
       </div>
 
-      <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <div
+      <TransitionGroup
+        name="favorite"
+        tag="div"
+        class="grid grid-cols-2 md:grid-cols-4 gap-4"
+      >
+        <ProductCardV3
           v-for="item in favorites"
-          :key="item.id"
-          class="relative border rounded-lg overflow-hidden shadow"
-        >
-          <NuxtLink :to="`/detail/${item.id}`">
-            <img :src="item.cover" alt="" class="w-full h-40 object-cover" />
-            <div class="p-2">
-              <div class="font-medium text-sm truncate">{{ item.title }}</div>
-              <div class="text-red-500 text-sm mt-1">
-                {{ item.minPrice }} 元/{{ item.unit }}
-              </div>
-            </div>
-          </NuxtLink>
-
-          <!-- 收藏按钮 -->
-          <!-- <Favorite
-            :goods-id="item.id"
-            v-model:isFavorite="item.isFavorite"
-            v-model:likeCount="item.likeCount"
-            class="absolute top-2 right-2"
-          /> -->
-        </div>
-      </div>
+          :title="item.title"
+          :image="item.cover"
+          :unit="item.unit"
+          :price="item.minPrice"
+          class="w-full h-full"
+          @click="goToDetail(item.id)"
+          @btn-click="handleBtnClick(item.id)"
+        />
+      </TransitionGroup>
     </div>
   </div>
 </template>
@@ -44,11 +35,13 @@
 import { ref, onMounted } from "vue";
 import Favorite from "~/assets/base-ui/Favorite.vue";
 import ThreeBodyLoader from "~/assets/base-ui/ThreeBodyLoader.vue";
+import ProductCardV3 from "~/components/ProductCard-v3.vue";
 import type { FavoriteGoodsItem } from "~/types/api/user";
 
 definePageMeta({ layout: "profile" });
 
 const { $api } = useNuxtApp();
+const router = useRouter();
 
 const favorites = ref<FavoriteGoodsItem[]>([]);
 const loading = ref(false);
@@ -66,6 +59,27 @@ const getFavorites = async () => {
   }
 };
 
+const goToDetail = (id: number) => {
+  router.push(`/detail/${id}`);
+};
+const handleBtnClick = async (id: number) => {
+  //找到被移除的 item 和位置（用于回滚）
+  const index = favorites.value.findIndex((i) => i.id === id);
+  if (index === -1) return;
+
+  const removedItem = favorites.value[index];
+  if (!removedItem) return;
+
+  // 乐观更新：先从列表中移除
+  favorites.value.splice(index, 1);
+  try {
+    await $api.user.toggleGoodsFavorite(id, false);
+  } catch (error) {
+    favorites.value.splice(index, 0, removedItem);
+    $toast.error("取消收藏失败，请稍后再试");
+  }
+};
+
 onMounted(() => {
   getFavorites();
 });
@@ -77,5 +91,19 @@ onMounted(() => {
 }
 .favorites-page img:hover {
   transform: scale(1.05);
+}
+.favorite-enter-active,
+.favorite-leave-active {
+  transition: all 0.3s ease;
+}
+
+.favorite-enter-from {
+  opacity: 0;
+  transform: scale(0.9);
+}
+
+.favorite-leave-to {
+  opacity: 0;
+  transform: scale(0.9);
 }
 </style>

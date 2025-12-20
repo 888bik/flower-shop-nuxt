@@ -37,11 +37,11 @@ interface IProps {
   price: number;
   badge?: string;
 }
-interface IEmit {
+interface IEmits {
   (e: "add"): void;
 }
 const { image, title, desc, price, badge = "NEW" } = defineProps<IProps>();
-const emit = defineEmits<IEmit>();
+const emit = defineEmits<IEmits>();
 
 const badgeClass = computed(() => {
   switch (badge) {
@@ -205,6 +205,10 @@ const badgeClass = computed(() => {
 
   min-height: calc(1.2em * 2); /* 强制等高 */
 }
+/* .card:hover .card__description {
+  opacity: 1;
+  transform: translateX(2px);
+} */
 
 .card__footer {
   display: flex;

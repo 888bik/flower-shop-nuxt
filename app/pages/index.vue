@@ -1,122 +1,98 @@
 <template>
-  <div class="home-page bg-page text-primary min-h-screen">
+  <div class="bg-page text-primary min-h-screen">
     <!-- Banner -->
     <div class="home-banner">
       <BannerCarousel />
     </div>
 
-    <div>
-      <!-- Hero Section -->
-      <section class="relative overflow-hidden">
-        <div class="hero-bg h-[420px] flex items-center">
-          <div class="container mx-auto px-6 mt-9">
-            <div class="max-w-xl">
-              <h1
-                class="text-4xl md:text-6xl font-bold text-heading leading-tight"
-              >
-                花间雅苑 · 温柔礼花
-              </h1>
-              <p class="mt-4 text-muted">
-                每天一束，用心到达 — 鲜花礼盒 / 永生花 / 绿植
-              </p>
-              <div class="mt-6 flex gap-3">
-                <!-- 主行动按钮：用变量保证随主题切换 -->
-                <button
-                  @click="$router.push('/category')"
-                  class="rounded-md font-semibold px-6 py-3 shadow-sm"
-                  :style="{
-                    background: 'var(--c-primary)',
-                    color: '#ffffff',
-                  }"
-                >
-                  立即选购
-                </button>
-
-                <button
-                  class="rounded-md px-6 py-3 border"
-                  :style="{
-                    borderColor:
-                      'color-mix(in srgb, var(--c-surface) 30%, #000 0%)',
-                    background: 'transparent',
-                    color: 'var(--c-muted)',
-                  }"
-                >
-                  热销推荐
-                </button>
-              </div>
-            </div>
-
-            <!-- 可选装饰图（desktop） -->
-            <div
-              class="hidden md:block ml-8 w-full h-[220px] rounded-lg shadow-lg"
-            >
-              <img
-                src="/images/hero-flower.webp"
-                alt="hero"
-                class="w-full h-full object-cover"
-              />
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <!-- 分类控制条 -->
-      <section class="container mx-auto px-6 py-6">
-        <div class="flex flex-wrap gap-3">
+    <section class="container mx-auto px-6 mt-6">
+      <div class="max-w-xl mb-4">
+        <h1 class="text-4xl md:text-6xl font-bold text-heading leading-tight">
+          花间雅苑 · 温柔礼花
+        </h1>
+        <p class="mt-4 text-muted">
+          每天一束，用心到达 — 鲜花礼盒 / 永生花 / 绿植
+        </p>
+        <div class="mt-6 flex gap-3">
+          <!-- 主行动按钮：用变量保证随主题切换 -->
           <button
-            :class="[
-              'px-4 py-2 rounded-full text-sm font-medium',
-              !selectedCategoryId ? 'active-pill' : 'pill-surface',
-            ]"
-            @click="selectCategory(null)"
-            :aria-pressed="!selectedCategoryId"
+            @click="$router.push('/category')"
+            class="rounded-md font-semibold px-6 py-3 shadow-sm"
           >
-            全部
+            立即选购
           </button>
-
-          <button
-            v-for="c in categoryList"
-            :key="c.id"
-            :class="[
-              'px-4 py-2 rounded-full text-sm font-medium',
-              selectedCategoryId === c.id ? 'active-pill' : 'pill-surface',
-            ]"
-            @click="selectCategory(c.id)"
-            :aria-pressed="selectedCategoryId === c.id"
-          >
-            {{ c.name }}
-          </button>
+          <button class="rounded-md px-6 py-3 border">热销推荐</button>
         </div>
-      </section>
-
-      <!-- 商品列表 -->
-      <main ref="gridRef" class="container mx-auto px-6 pb-16">
-        <ProductGrid
-          :product-list-data="displayedProducts"
-          :total-count="filteredProducts.length"
-          @quick="openQuickView"
-          class="mt-4"
+      </div>
+      <div class="flex gap-4 overflow-x-auto py-2">
+        <CategoryCard
+          v-for="cat in cardList"
+          :key="cat.title"
+          :title="cat.title"
+          :subtitle="cat.subtitle"
+          :image="cat.image"
+          :style="{ background: cat.bg }"
+          class="flex-shrink-0 w-44 h-48 rounded-lg shadow-lg"
         />
+      </div>
+    </section>
 
-        <!-- 加载更多 -->
-        <div class="flex justify-center mb-6">
-          <button
-            v-if="displayedProducts.length < filteredProducts.length"
-            @click="loadMore"
-            class="px-6 py-2 rounded-md font-medium shadow"
-            :style="{ background: 'var(--c-primary)', color: '#fff' }"
-            :disabled="loadMoreLoading"
-          >
-            <span v-if="!loadMoreLoading" class="text-sm text-muted">
-              加载更多
-            </span>
-            <span v-else>
-              <ThreeBodyLoader />
-            </span>
-          </button>
-        </div>
-      </main>
-    </div>
+    <!-- 分类控制条 -->
+    <section class="container mx-auto px-6 py-6">
+      <div class="flex flex-wrap gap-3">
+        <button
+          :class="[
+            'px-4 py-2 rounded-full text-sm font-medium',
+            !selectedCategoryId ? 'active-pill' : 'pill-surface',
+          ]"
+          @click="selectCategory(null)"
+          :aria-pressed="!selectedCategoryId"
+        >
+          全部
+        </button>
+
+        <button
+          v-for="c in categoryList"
+          :key="c.id"
+          :class="[
+            'px-4 py-2 rounded-full text-sm font-medium',
+            selectedCategoryId === c.id ? 'active-pill' : 'pill-surface',
+          ]"
+          @click="selectCategory(c.id)"
+          :aria-pressed="selectedCategoryId === c.id"
+        >
+          {{ c.name }}
+        </button>
+      </div>
+    </section>
+
+    <!-- 商品列表 -->
+    <main ref="gridRef" class="container mx-auto px-6 pb-16">
+      <ProductGrid
+        :product-list-data="displayedProducts"
+        :total-count="filteredProducts.length"
+        @quick="openQuickView"
+        class="mt-4"
+      />
+
+      <!-- 加载更多 -->
+      <div class="flex justify-center mb-6">
+        <button
+          v-if="displayedProducts.length < filteredProducts.length"
+          @click="loadMore"
+          class="px-6 py-2 rounded-md font-medium shadow"
+          :style="{ background: 'var(--c-primary)', color: '#fff' }"
+          :disabled="loadMoreLoading"
+        >
+          <span v-if="!loadMoreLoading" class="text-sm text-muted">
+            加载更多
+          </span>
+          <span v-else>
+            <ThreeBodyLoader />
+          </span>
+        </button>
+      </div>
+    </main>
   </div>
 </template>
 
@@ -124,6 +100,7 @@
 import { ref, computed, watch, onMounted } from "vue";
 import ThreeBodyLoader from "~/assets/base-ui/ThreeBodyLoader.vue";
 import BannerCarousel from "~/components/BannerCarousel.vue";
+import CategoryCard from "~/components/CategoryCard.vue";
 import ProductGrid from "~/components/ProductGrid.vue";
 import type { ProductItem } from "~/types/api/goods";
 
@@ -150,6 +127,46 @@ const filteredProducts = computed(() => {
 });
 
 const loadMoreLoading = ref(false);
+
+//分类卡片
+const cardList = reactive([
+  {
+    title: "送恋人",
+    subtitle: "有幸遇见，恰好合拍",
+    image: "https://picsum.photos/seed/rose/400/320",
+    bg: "#fde8ee",
+  },
+  {
+    title: "送长辈",
+    subtitle: "岁月温柔 因你常在",
+    image: "https://picsum.photos/seed/elder/200/200",
+    bg: "#fff0e8",
+  },
+  {
+    title: "送朋友",
+    subtitle: "时光不老 我们不散",
+    image: "https://picsum.photos/seed/friend/200/200",
+    bg: "#e9f6ff",
+  },
+  {
+    title: "生日祝福",
+    subtitle: "新的 1 岁，值得庆祝",
+    image: "https://picsum.photos/seed/birthday/480/360",
+    bg: "#fdeee6",
+  },
+  {
+    title: "表白求婚",
+    subtitle: "浪漫时刻，铭记一生",
+    image: "https://picsum.photos/seed/propose/200/200",
+    bg: "#fff0f4",
+  },
+  {
+    title: "设计师甄选",
+    subtitle: "花语传情，稀有浪漫",
+    image: "https://picsum.photos/seed/designer/200/200",
+    bg: "#fef3f6",
+  },
+]);
 
 // 获取商品和分类（客户端）
 onMounted(async () => {

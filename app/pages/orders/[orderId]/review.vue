@@ -46,7 +46,6 @@
                   </div>
 
                   <div class="mt-3 rating-row">
-                    <!-- Vuetify v-rating 支持 half-increments -->
                     <v-rating
                       v-model="it._rating"
                       half-increments
@@ -125,7 +124,7 @@ type Item = {
   num?: number;
   canReview?: boolean;
 
-  _rating: number; // supports half values like 4.5
+  _rating: number;
   _content: string;
 };
 
@@ -143,7 +142,6 @@ const filledCount = computed(() =>
 );
 
 function displayRating(v: number) {
-  // show one decimal when half (e.g., 4.5) or integer otherwise
   if (v % 1 === 0) return `${v.toFixed(0)}.0`;
   return v.toFixed(1);
 }
@@ -165,7 +163,7 @@ async function loadItems(id: number) {
       goodsCover: it.goodsCover ?? it.goods_cover,
       num: it.num ?? 1,
       canReview: it.canReview ?? true,
-      _rating: 5, // default to 5.0 (supports half increments)
+      _rating: 5,
       _content: "",
     }));
   } catch (err) {

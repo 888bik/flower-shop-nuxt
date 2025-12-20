@@ -244,6 +244,7 @@ async function doConfirmReceive() {
   try {
     await $api.orders.confirmReceive(currentOrderId.value);
     $toast.success("确认收货成功");
+    refresh();
   } catch (error) {
     $toast.error("操作失败，请重新尝试");
   } finally {
