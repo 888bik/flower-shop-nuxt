@@ -54,19 +54,22 @@ import "swiper/css/navigation";
 
 const slides = [
   {
-    image: "/images/banner1.png",
+    image:
+      "https://s-take-out-gdjt-aaa-1326300379.cos.ap-guangzhou.myqcloud.com/1765436288553_0ad4a263f88b44c39942e600cb9eceaa_25_nuandong_banner_pc.png",
     title: "每日鲜花配送",
     subtitle: "新鲜花束，送达每一个美好时刻",
     btnText: "立即选购",
   },
   {
-    image: "/images/banner2.png",
+    image:
+      " https://s-take-out-gdjt-aaa-1326300379.cos.ap-guangzhou.myqcloud.com/1765436288556_39ca88edc44e423abf3c28aa21c6b154_25_xmas_banner_pc.png",
     title: "轻奢黑金花艺",
     subtitle: "为家增添高级质感",
     btnText: "了解详情",
   },
   {
-    image: "/images/banner3.jpg",
+    image:
+      "https://s-take-out-gdjt-aaa-1326300379.cos.ap-guangzhou.myqcloud.com/1765436302985_2c87dc6755564eeb8159b636972ac7cf_ana-maltez-dz1JMcL5qNA-unsplash.jpg",
     title: "节日特惠花束",
     subtitle: "心意满满，送给最爱的人",
     btnText: "立即购买",

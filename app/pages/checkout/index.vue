@@ -135,7 +135,7 @@
                         </button>
                         <button
                           class="ml-3 text-sm text-muted hover:text-red-600"
-                          @click="removeItem(item)"
+                          @click="onRemoveClick(item)"
                         >
                           删除
                         </button>
@@ -239,10 +239,8 @@
               </div>
             </div>
           </div>
-          <!-- /.left-scroll -->
         </div>
 
-        <!-- RIGHT: 订单概览（sticky） -->
         <div class="col-span-12 lg:col-span-4">
           <div
             class="order-sidebar rounded-xl border p-6 bg-surface"
@@ -386,12 +384,24 @@
         </v-card-actions>
       </v-card>
     </v-dialog>
+    <v-dialog v-model="dialog" max-width="400">
+      <v-card>
+        <v-card-title class="text-h6">确认删除</v-card-title>
+        <v-card-text>你确定要删除该商品吗？</v-card-text>
+        <v-card-actions>
+          <v-spacer></v-spacer>
+          <v-btn text @click="cancelRemove">取消</v-btn>
+          <v-btn color="error" @click="confirmRemove">删除</v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref, computed, onMounted } from "vue";
 import { useRouter } from "vue-router";
+import { formatPrice } from "~/utils/utils";
 import { useCartStore } from "~/stores/cart";
 import type { CartItem as CartItemType } from "~/types/api/cart";
 import type { CouponItem } from "~/types/api/coupon";
@@ -401,6 +411,10 @@ const router = useRouter();
 const route = useRoute();
 const cartStore = useCartStore();
 const { $api } = useNuxtApp();
+const dialog = ref(false);
+
+const items = ref([]);
+const preOrder = ref(null);
 
 const selectedIdsFromQuery = computed(() => {
   const q = route.query.carts;
@@ -443,8 +457,8 @@ const paymentMethod = ref("WECHAT");
 const availableCoupons = ref<CouponItem[]>([]);
 const selectedCouponId = ref<number | null>(null);
 
-// cart & selections
 const cartList = computed<CartItemType[]>(() => cartStore.list ?? []);
+const currentItem = ref<CartItemType | null>(null);
 
 const itemsSubtotal = computed(() =>
   selectedItems.value.reduce(
@@ -481,20 +495,6 @@ const totalPayable = computed(() => {
   return raw > 0 ? raw : 0;
 });
 
-// helpers
-function formatPrice(v: any) {
-  const n = Number(v ?? 0);
-  if (Number.isNaN(n)) return "0.00";
-  return (Math.round(n * 100) / 100).toFixed(2);
-}
-
-function addressInitials() {
-  if (!selectedAddress.value) return "U";
-  const n = selectedAddress.value.name || selectedAddress.value.address || "";
-  return n.slice(0, 1).toUpperCase();
-}
-
-// load data
 async function loadAddresses() {
   try {
     const res = await $api.addresses.getAddressList();
@@ -524,15 +524,12 @@ async function refreshAll() {
   $toast.success("刷新成功");
 }
 
-// quantity updates: immediate UI + debounce sync to store
 const pendingTimers = new Map<number, number>();
 
 function scheduleUpdateNum(id: number, num: number) {
-  // clear previous
   const prev = pendingTimers.get(id);
   if (prev) clearTimeout(prev);
   const t = setTimeout(() => {
-    // call store API
     cartStore.updateNum(id, num);
     pendingTimers.delete(id);
   }, 400) as unknown as number;
@@ -547,7 +544,6 @@ function changeNum(item: CartItemType, step: number) {
     return;
   }
   item.num = next;
-  // schedule store update
   scheduleUpdateNum(item.id, item.num);
 }
 
@@ -559,19 +555,35 @@ function onNumInput(item: CartItemType) {
   scheduleUpdateNum(item.id, item.num);
 }
 
-async function removeItem(item: CartItemType) {
-  if (!confirm("确认删除该商品？")) return;
+// 点击删除按钮
+function onRemoveClick(item: CartItemType) {
+  currentItem.value = item;
+  dialog.value = true;
+}
+
+// 确认删除
+async function confirmRemove() {
+  if (!currentItem.value) return;
   try {
-    // 乐观删除本地
-    const idx = cartList.value.findIndex((i) => i.id === item.id);
+    // 乐观删除
+    const idx = cartList.value.findIndex((i) => i.id === currentItem.value!.id);
     if (idx >= 0) cartList.value.splice(idx, 1);
-    await cartStore.removeFromCart(item.id);
+
+    await cartStore.removeFromCart(currentItem.value.id);
     $toast?.success?.("已移除");
   } catch (e) {
     console.error(e);
     $toast?.error?.("删除失败");
     await cartStore.fetchCart();
+  } finally {
+    dialog.value = false;
+    currentItem.value = null;
   }
+}
+// 取消删除
+function cancelRemove() {
+  dialog.value = false;
+  currentItem.value = null;
 }
 
 function saveForLater() {
@@ -593,7 +605,6 @@ function goAddresses() {
   router.push("/profile/addresses");
 }
 
-// place order
 async function placeOrder() {
   if (selectedItems.value.length === 0) {
     $toast?.error?.("请选择商品");
@@ -634,7 +645,6 @@ async function placeOrder() {
   }
 }
 
-// lifecycle
 onMounted(async () => {
   await cartStore.fetchCart();
   await loadAddresses();
@@ -643,17 +653,6 @@ onMounted(async () => {
 </script>
 
 <style scoped>
-/* 基本色彩 */
-.bg-page {
-  background-color: var(--c-bg);
-}
-.text-muted {
-  color: var(--c-muted);
-}
-.text-text {
-  color: var(--c-text);
-}
-
 /* 按钮样式 */
 .btn-primary {
   display: inline-block;
@@ -668,17 +667,10 @@ onMounted(async () => {
   box-shadow: 0 8px 26px rgba(255, 111, 163, 0.12);
 }
 
-/* 主布局调整：保持 grid 列结构，同时控制左侧内部滚动 */
 .checkout-layout {
-  /* Tailwind grid 列已定义在模板类上，这里只保证最小高度 */
-  min-height: calc(
-    100vh - 96px
-  ); /* 留出顶部 header 空间：按实际 header 高度调整 */
+  min-height: calc(100vh - 96px);
 }
 
-/* 左侧的内部滚动区域（桌面有效）：
-   max-height 需要根据 header + 页内间距调整（此处示例：96px header + 84px 其他间距 => 180）
-*/
 .left-scroll {
   max-height: calc(100vh - 180px);
   overflow: auto;
@@ -688,7 +680,7 @@ onMounted(async () => {
 /* 右侧 sidebar sticky */
 .order-sidebar {
   position: sticky;
-  top: 24px; /* 你可以改成更大的值（例如 96px）以配合全局 header */
+  top: 24px;
   align-self: start;
 }
 
@@ -703,13 +695,11 @@ onMounted(async () => {
     top: auto;
   }
 
-  /* mobile bottom bar 覆盖时给页面底部一点间距 */
   .min-h-screen {
     padding-bottom: 84px;
   }
 }
 
-/* 可选：微调图片和文本截断，防止宽度溢出 */
 .truncate {
   overflow: hidden;
   text-overflow: ellipsis;

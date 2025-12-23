@@ -1,10 +1,13 @@
 import type { MyRequest } from "~/plugins/axios";
 import type {
+  applyRefundPayload,
   CreateOrderPayload,
   CreateOrderResponse,
   OrderDetailResponse,
   OrderListResponse,
+  returnShipPayload,
   ShipDataResponse,
+  submitReturnPayload,
   submitReviewPayload,
 } from "~/types/api/orders";
 
@@ -37,5 +40,17 @@ export default (api: MyRequest) => ({
   },
   submitReview(id: number, payload: submitReviewPayload) {
     return api.post(`/user/orders/${id}/review`, { ...payload });
+  },
+  deleteOrder(ids: number[]) {
+    return api.post("/user/orders/delete", { ids });
+  },
+  applyRefund(payload: applyRefundPayload) {
+    return api.post("/user/orders/refund/apply", { ...payload });
+  },
+  submitReturn(payload: submitReturnPayload) {
+    return api.post("/user/orders/refund/return", { ...payload });
+  },
+  submitReturnShip(payload: returnShipPayload) {
+    return api.post("/user/orders/return/ship", { ...payload });
   },
 });

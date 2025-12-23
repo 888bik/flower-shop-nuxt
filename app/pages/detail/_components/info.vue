@@ -39,18 +39,18 @@
 
             <div class="text-right">
               <div class="text-lg font-bold text-primary">
-                ¥{{ detail.price }}
+                {{ detail.price }}
               </div>
               <div class="text-xs text-muted">/ {{ detail.unit }}</div>
             </div>
           </div>
 
-          <p class="mt-4 text-sm text-muted">{{ detail.shortDesc }}</p>
+          <p class="mt-4 text-sm text-muted">{{ detail.desc }}</p>
 
           <div class="mt-5 flex flex-wrap gap-3">
             <button
               class="px-4 py-2 rounded-lg bg-primary text-white text-sm shadow"
-              @click="onBuy"
+              @click="onBuyNow(detail.id)"
             >
               立即购买
             </button>
@@ -62,7 +62,6 @@
             </button>
           </div>
 
-          <!-- 关键信息 / 规格（放在富文本上方，便于快速查看） -->
           <div class="mt-6 grid grid-cols-2 sm:grid-cols-4 gap-3">
             <div class="text-sm">
               <div class="text-xs text-muted">重量</div>
@@ -187,33 +186,42 @@ interface IProps {
     list: ReviewItem[];
     total: number;
   };
+  detail: {
+    id: number;
+    title: string;
+    price: number | string;
+    unit: string;
+    desc: string;
+    contentHtml: string | null;
+  };
 }
-const { sales, reviewData } = defineProps<IProps>();
-
+const { sales, reviewData, detail } = defineProps<IProps>();
+const cartStore = useCartStore();
+const router = useRouter();
 const { $dompurify } = useNuxtApp();
 
-const detail = ref({
-  id: 101,
-  title: "粉色永生花礼盒 · 暖心之选",
-  price: 198,
-  unit: "套",
-  shortDesc: "精选粉玫瑰搭配干燥绣球，礼盒包装，适合送礼与家居装饰。",
-  descriptionHtml: `
-    <h2>产品介绍</h2>
-    <p>这是一款适合各种节日的精美礼盒，包含：</p>
-    <ul>
-      <li>新鲜玫瑰 x 7</li>
-      <li>干燥绣球 x 2</li>
-      <li>高档礼盒包装 + 贺卡</li>
-    </ul>
-    <p>避免阳光直射，保持干燥，空气流通可延长保鲜时间。</p>
-  `,
-});
+// const detail = ref({
+//   id: 101,
+//   title: "粉色永生花礼盒 · 暖心之选",
+//   price: 198,
+//   unit: "套",
+//   shortDesc: "精选粉玫瑰搭配干燥绣球，礼盒包装，适合送礼与家居装饰。",
+//   descriptionHtml: `
+//     <h2>产品介绍</h2>
+//     <p>这是一款适合各种节日的精美礼盒，包含：</p>
+//     <ul>
+//       <li>新鲜玫瑰 x 7</li>
+//       <li>干燥绣球 x 2</li>
+//       <li>高档礼盒包装 + 贺卡</li>
+//     </ul>
+//     <p>避免阳光直射，保持干燥，空气流通可延长保鲜时间。</p>
+//   `,
+// });
 
 const seller = ref({
-  name: "花间小筑",
-  avatar: "https://i.pravatar.cc/80?img=12",
-  location: "深圳",
+  name: "花间交通",
+  avatar: "/flower-shop.svg",
+  location: "清远",
   rating: 4.8,
   sales: 6523,
   freeShipping: true,
@@ -234,7 +242,7 @@ const avgRating = computed(() => {
 });
 
 const filteredReviews = computed(() => {
-  // 目前不做筛选，保留扩展点
+  // 目前不做筛选
   return reviewData.list;
 });
 
@@ -249,16 +257,28 @@ const hasMore = computed(
 function loadMoreReviews() {
   page.value++;
 }
-function onBuy() {
-  /* 跳转下单逻辑 */ alert("去下单（示例）");
+
+function onBuyNow(id: number) {
+  const payload = {
+    buyNow: "1",
+    items: JSON.stringify([{ goodsId: id, sku: null, qty: 1 }]),
+  };
+  router.push({ path: "/checkout", query: payload });
 }
-function onAddCart() {
-  alert("加入购物车（示例）");
+async function onAddCart() {
+  try {
+    await cartStore.addCart(detail.id, 1);
+    $toast.success("添加购物车成功");
+  } catch (error) {
+    $toast.error("添加失败，请重新尝试");
+  }
 }
 
-const sanitizedHtml = computed(() =>
-  $dompurify.sanitize(detail.value.descriptionHtml)
-);
+const sanitizedHtml = computed(() => {
+  if (!detail.contentHtml) return;
+
+  return $dompurify.sanitize(detail.contentHtml);
+});
 </script>
 
 <style scoped>

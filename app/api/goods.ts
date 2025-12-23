@@ -7,9 +7,13 @@ import type {
 } from "~/types/api/goods";
 
 export default (api: MyRequest) => ({
-  getProductList(page: number = 1, limit: number = 10) {
+  getProductList(
+    page: number = 1,
+    limit: number = 10,
+    categoryIds: number | null
+  ) {
     return api.get<ProductListResponse>(`/mall/goods`, {
-      params: { page, limit: limit },
+      params: { page, limit, categoryIds },
     });
   },
   getCategoryList() {

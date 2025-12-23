@@ -1,5 +1,11 @@
 export type shippingType = "express" | "standard";
 export type payStatus = "unpaid" | "paid" | "refunded" | "closed";
+export type refundStatus =
+  | "none"
+  | "pending"
+  | "agreed"
+  | "rejected"
+  | "completed";
 export interface OrderItem {
   goodsId: number;
   num: number;
@@ -61,6 +67,7 @@ export interface OrderListItem {
   shipStatus: string;
   createTime: number;
   payStatus: payStatus;
+  refundStatus: refundStatus;
   address: OrderAddress;
   items: OrderItem[];
   subtotal: number;
@@ -102,4 +109,21 @@ export interface submitReviewPayload {
     rating: number;
     content: string;
   }[];
+}
+
+export interface applyRefundPayload {
+  orderId: number;
+  reason: string;
+  refundType: string;
+}
+
+export interface submitReturnPayload {
+  orderId: number;
+  reason: string;
+}
+
+export interface returnShipPayload {
+  orderId: number;
+  company: string;
+  trackingNo: string;
 }

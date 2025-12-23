@@ -11,53 +11,56 @@
         </v-btn>
       </div>
     </div>
-
-    <div
-      v-if="loading && addresses.length === 0"
-      class="flex justify-center py-20"
-    >
-      <three-body-loader class="w-16 h-16" />
-    </div>
-
-    <div v-else>
-      <div v-if="addresses.length === 0" class="text-muted">
-        你还没有保存任何地址，点击“新增地址”开始添加。
+    <ClientOnly>
+      <div
+        v-if="loading && addresses.length === 0"
+        class="flex justify-center py-20"
+      >
+        <three-body-loader class="w-16 h-16" />
       </div>
 
-      <ul class="space-y-4 min-h-[160px]">
-        <li
-          v-for="addr in addresses"
-          :key="addr.id"
-          class="p-4 rounded-lg bg-surface border flex justify-between items-start"
-          :style="{ borderColor: 'var(--c-border)' }"
-        >
-          <div>
-            <div class="flex items-center gap-3">
-              <div class="font-medium text-text">
-                {{ addr.name }} · {{ addr.phone }}
+      <div v-else>
+        <div v-if="addresses.length === 0" class="text-muted">
+          你还没有保存任何地址，点击“新增地址”开始添加。
+        </div>
+
+        <ul class="space-y-4 min-h-[160px]">
+          <li
+            v-for="addr in addresses"
+            :key="addr.id"
+            class="p-4 rounded-lg bg-surface border flex justify-between items-start"
+            :style="{ borderColor: 'var(--c-border)' }"
+          >
+            <div>
+              <div class="flex items-center gap-3">
+                <div class="font-medium text-text">
+                  {{ addr.name }} · {{ addr.phone }}
+                </div>
+                <span
+                  v-if="addr.isDefault"
+                  class="px-2 py-0.5 text-xs rounded bg-primary text-white"
+                  >默认</span
+                >
               </div>
-              <span
-                v-if="addr.isDefault"
-                class="px-2 py-0.5 text-xs rounded bg-primary text-white"
-                >默认</span
+              <div class="text-sm text-muted mt-1">
+                {{ addr.province }} {{ addr.city }} {{ addr.district }}
+                {{ addr.address }}
+              </div>
+            </div>
+
+            <div class="flex items-end gap-2 justify-center">
+              <v-btn text small @click="openEdit(addr)">编辑</v-btn>
+              <v-btn text small color="error" @click="onDelete(addr)"
+                >删除</v-btn
+              >
+              <v-btn text small v-if="!addr.isDefault" @click="setDefault(addr)"
+                >设为默认</v-btn
               >
             </div>
-            <div class="text-sm text-muted mt-1">
-              {{ addr.province }} {{ addr.city }} {{ addr.district }}
-              {{ addr.address }}
-            </div>
-          </div>
-
-          <div class="flex items-end gap-2 justify-center">
-            <v-btn text small @click="openEdit(addr)">编辑</v-btn>
-            <v-btn text small color="error" @click="onDelete(addr)">删除</v-btn>
-            <v-btn text small v-if="!addr.isDefault" @click="setDefault(addr)"
-              >设为默认</v-btn
-            >
-          </div>
-        </li>
-      </ul>
-    </div>
+          </li>
+        </ul>
+      </div>
+    </ClientOnly>
 
     <v-dialog v-model="dialog" max-width="640">
       <v-card class="bg-surface">

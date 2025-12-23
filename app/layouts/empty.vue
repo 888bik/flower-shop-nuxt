@@ -7,4 +7,9 @@
 
 <script setup lang="ts"></script>
 
-<style scoped></style>
+<style scoped>
+.empty-layout {
+  min-height: 100vh;
+  background: #cbc0d3;
+}
+</style>

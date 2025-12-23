@@ -16,18 +16,14 @@
 
       <v-spacer />
 
-      <!-- 返回商城：主色为粉色，hover 保持 gold 点缀 -->
-      <v-btn variant="text" to="/" class="text-primary">
-        <v-icon start class="text-primary">mdi-store</v-icon> 返回商城
-      </v-btn>
+      <v-btn variant="text" to="/" class="text-primary"> 返回商城 </v-btn>
 
       <!-- 用户菜单 -->
       <v-menu>
         <template #activator="{ props }">
-          <v-btn v-bind="props" icon>
-            <!-- 头像使用品牌主色（粉）+ 白字 -->
-            <v-avatar size="36" class="bg-primary text-white">
-              {{ initials }}
+          <v-btn v-bind="props" icon variant="text" class="p-0 mr-4">
+            <v-avatar size="36">
+              <img :src="avatarSrc" alt="用户头像" />
             </v-avatar>
           </v-btn>
         </template>
@@ -74,24 +70,32 @@
 </template>
 
 <script setup lang="ts">
+defineOptions({
+  ssr: false,
+});
+
 import { ref, computed } from "vue";
 const drawer = ref(false);
 
 const userStore = useUserStore();
 const authStore = useAuthStore();
 
-const initials = computed(() => {
-  const n =
-    userStore.userInfo?.user?.nickname ||
-    userStore.userInfo?.user?.username ||
-    "U";
-  return n.slice(0, 1).toUpperCase();
-});
+const mounted = ref(false);
 
 const logout = async () => {
   authStore.logout();
   navigateTo("/login");
 };
+
+onMounted(() => {
+  mounted.value = true;
+});
+const avatarSrc = computed(() => {
+  if (!mounted.value) {
+    return "/default-avatar.svg";
+  }
+  return userStore.userInfo?.user?.avatar || "/default-avatar.svg";
+});
 </script>
 
 <style scoped>

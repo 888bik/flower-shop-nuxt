@@ -7,11 +7,15 @@
   >
     <!-- 图片区 -->
     <div class="card-media">
+      <!-- 占位背景 -->
+      <div v-if="!imageLoaded" class="skeleton"></div>
       <img
         :src="displayImage"
         :alt="product.title || `product-${product.id}`"
         class="media-img"
+        :class="{ loaded: imageLoaded }"
         loading="lazy"
+        @load="onImageLoad"
       />
 
       <!-- 小缩略图切换 -->
@@ -19,7 +23,7 @@
         <button
           v-for="(img, i) in product.banners"
           :key="i"
-          @click="currentImg = i"
+          @click="changeImage(i)"
           :class="['thumb', { active: currentImg === i }]"
           :aria-label="`切换到第 ${i + 1} 张`"
         >
@@ -101,12 +105,25 @@ interface IEmits {
 const props = defineProps<IProps>();
 const emit = defineEmits<IEmits>();
 
+const authStore = useAuthStore();
+
 const currentImg = ref(0);
+const imageLoaded = ref(false);
 const displayImage = computed(() =>
   props.product.banners && props.product.banners.length
     ? props.product.banners[currentImg.value]
     : props.product.cover ?? ""
 );
+
+function onImageLoad() {
+  imageLoaded.value = true;
+}
+
+// 缩略图切换时重置加载状态
+function changeImage(i: number) {
+  currentImg.value = i;
+  imageLoaded.value = false;
+}
 
 const categoryNames = computed(() =>
   (props.product.categories ?? []).slice(0, 2).map((c: any) => c.name)
@@ -120,6 +137,9 @@ const discountPercent = computed(() => {
 });
 
 function onAddToCart() {
+  if (!authStore.isLogin) {
+    return $toast.error("请先登录");
+  }
   emit("add", props.product);
 }
 function onCardClick() {
@@ -149,6 +169,51 @@ function onCardClick() {
   position: relative;
   height: 280px;
   background: #111;
+  overflow: hidden;
+}
+/* 占位背景 */
+.image-placeholder {
+  width: 100%;
+  height: 100%;
+  background: #222;
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 1;
+}
+/* 骨架动画 */
+.skeleton {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: #222;
+  overflow: hidden;
+}
+.skeleton::after {
+  content: "";
+  display: block;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    rgba(34, 34, 34, 0) 0%,
+    rgba(55, 55, 55, 0.3) 50%,
+    rgba(34, 34, 34, 0) 100%
+  );
+  position: absolute;
+  top: 0;
+  left: -100%;
+  animation: shimmer 1.5s infinite;
+}
+@keyframes shimmer {
+  0% {
+    left: -100%;
+  }
+  100% {
+    left: 100%;
+  }
 }
 
 .media-img {
@@ -156,7 +221,13 @@ function onCardClick() {
   height: 100%;
   object-fit: cover;
   display: block;
-  transition: transform 0.45s ease;
+  opacity: 0;
+  z-index: 2;
+  transition: opacity 0.4s ease;
+}
+
+.media-img.loaded {
+  opacity: 1;
 }
 
 .product-card:hover .media-img {

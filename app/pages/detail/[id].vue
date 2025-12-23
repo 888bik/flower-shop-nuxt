@@ -15,6 +15,14 @@
       v-if="detailInfo?.sales"
       :sales="detailInfo?.sales"
       :review-data="{ list: reviewInfo.list, total: reviewInfo.total }"
+      :detail="{
+        title: detailInfo.title,
+        id: detailInfo.id,
+        price: detailInfo.price.displayMin,
+        unit: detailInfo.unit,
+        contentHtml: detailInfo.contentHtml,
+        desc: detailInfo.description ?? '',
+      }"
     />
   </div>
 
@@ -41,7 +49,7 @@ import Images from "./_components/images.vue";
 import Info from "./_components/info.vue";
 import ThreeBodyLoader from "~/assets/base-ui/ThreeBodyLoader.vue";
 import type { ReviewItem, ReviewListResponse } from "~/types/api/review";
-import { flipSide } from "vuetify/lib/util/anchor.mjs";
+import { useSeo } from "~/composables/useSeo";
 
 const { $api } = useNuxtApp();
 const route = useRoute();
@@ -64,14 +72,46 @@ const reviewInfo = ref<ReviewListResponse>({
   list: [],
 });
 const loadingReviews = ref(false);
-
+/* 获取商品详情 */
 const getGoodsDetailInfo = async () => {
+  loading.value = true;
   try {
-    loading.value = true;
-    detailInfo.value = await $api.goods.getGoodsDetail(goodsId.value);
-    console.log(detailInfo.value);
-  } catch (error) {
-    $toast.error("获取数据失败");
+    const res = await $api.goods.getGoodsDetail(goodsId.value);
+    detailInfo.value = res;
+
+    // 收藏信息
+    likeCount.value = res.likeCount;
+    isFavorite.value = res.isFavorite;
+
+    // 设置 SEO 和 JSON-LD
+    useSeo({
+      title: res.title,
+      description: res.description ?? "",
+      image: res.cover ?? "",
+      url: `https://www.yourdomain.com/product/${res.id}`,
+      type: "website", // 页面为网站类型
+      jsonLd: {
+        "@context": "https://schema.org",
+        "@type": "Product",
+        name: res.title,
+        image: [res.cover ?? ""],
+        description: res.description ?? "",
+        brand: {
+          "@type": "Brand",
+          name: "花语商城",
+        },
+        offers: {
+          "@type": "Offer",
+          price: Number(res.price.displayMin ?? 0),
+          priceCurrency: "CNY",
+          availability: "https://schema.org/InStock",
+          url: `https://www.yourdomain.com/product/${res.id}`,
+        },
+      },
+    });
+  } catch (err) {
+    console.error(err);
+    $toast.error("获取商品详情失败");
   } finally {
     loading.value = false;
   }

@@ -13,7 +13,6 @@
         :key="p.id"
         :product="p"
         @add="onAdd"
-        @quick="onQuick"
         @click="onClick"
       />
     </div>
@@ -48,9 +47,5 @@ async function onAdd(p: ProductItem) {
 
 function onClick(p: ProductItem) {
   router.push(`/detail/${p.id}`);
-}
-
-function onQuick(p: any) {
-  console.log("Quick view", p);
 }
 </script>

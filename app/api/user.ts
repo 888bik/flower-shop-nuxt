@@ -11,7 +11,10 @@ export default (api: MyRequest) => ({
     return api.post("/user/register", { ...payload });
   },
   userLogin(username: string, password: string) {
-    return api.post("/user/login", { username, password });
+    return api.post<{ refreshToken: string; accessToken: string }>(
+      "/user/login",
+      { username, password }
+    );
   },
   getUserInfo() {
     return api.get("/user/profile");
@@ -35,5 +38,8 @@ export default (api: MyRequest) => ({
   },
   getFavoritesGoods() {
     return api.get<FavoritesGoodsList>("/user/favorites");
+  },
+  refreshToken(refreshToken: string, role: string = "user") {
+    return api.post("/auth/refresh", { refreshToken, role });
   },
 });

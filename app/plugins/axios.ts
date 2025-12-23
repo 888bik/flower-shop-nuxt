@@ -27,34 +27,59 @@ export class MyRequest {
   constructor(config: MyRequestConfig) {
     this.instance = axios.create(config);
     //添加全局拦截器
-    //请求拦截,可以针对每个请求拦截处理,比如添加token
     this.instance.interceptors.request.use(
       (config) => {
         //将token添加到请求头中
-        const token = getToken("user-token");
-        if (token) config.headers["token"] = token;
-
+        const authStore = useAuthStore();
+        if (authStore.accessToken) {
+          config.headers["accessToken"] = authStore.accessToken;
+        }
         return config;
       },
 
       (err) => {
-        Promise.reject(err);
+        return Promise.reject(err);
       }
     );
     //响应拦截器
     this.instance.interceptors.response.use(
-      (res: AxiosResponse) => {
-        const data = res.data as ApiResponse<any>;
-        if (!data.success) {
-          return Promise.reject(data);
-        }
+      (response: AxiosResponse) => {
+        const data = response.data as ApiResponse<any>;
+
         return data.data;
       },
-      (err) => {
-        // const msg = err?.response?.data?.msg || "请求失败";
-        // $toast.success("请求错误");
-        // return Promise.reject(err);
-        Promise.reject(err);
+      async (err) => {
+        const status = err?.response?.status;
+        const originalRequest = err.config;
+        const authStore = useAuthStore();
+
+        if (
+          status === 401 &&
+          !originalRequest._retry &&
+          authStore.refreshToken
+        ) {
+          originalRequest._retry = true;
+
+          try {
+            const refreshRes = await this.post("/auth/refresh", {
+              refreshToken: authStore.refreshToken,
+              role: "user",
+            });
+
+            const { accessToken, refreshToken } = refreshRes;
+
+            authStore.updateAccessToken(accessToken);
+            authStore.updateRefreshToken(refreshToken);
+
+            originalRequest.headers["accessToken"] = accessToken;
+            return this.request(originalRequest);
+          } catch (refreshErr) {
+            authStore.logout();
+            return Promise.reject(refreshErr);
+          }
+        }
+
+        return Promise.reject(err);
       }
     );
 

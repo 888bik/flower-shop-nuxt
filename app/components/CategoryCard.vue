@@ -1,38 +1,102 @@
 <template>
-  <div
-    class="flex-shrink-0 w-44 h-48 rounded-lg shadow-lg p-4 flex flex-col justify-between"
-    :style="{ background: bg }"
-  >
-    <div>
-      <h4 class="text-lg font-semibold text-black/90">{{ title }}</h4>
-      <p class="text-xs text-black/60 mt-1">{{ subtitle }}</p>
+  <div class="scene-wrap">
+    <!-- 第一列：大竖 -->
+    <a class="card v-big">
+      <img src="//img02.hua.com/pc/pimg/home/home_channel_lover.png" />
+    </a>
+
+    <!-- 第二列 -->
+    <div class="col">
+      <a class="card h">
+        <img src="//img02.hua.com/pc/pimg/home/home_channel_elder2.png" />
+      </a>
+      <a class="card h">
+        <img src="//img02.hua.com/pc/pimg/home/home_channel_friend.png" />
+      </a>
     </div>
-    <img
-      :src="image"
-      :alt="title"
-      class="w-full h-28 object-cover rounded-lg mt-2"
-      loading="lazy"
-    />
+
+    <!-- 第三列 -->
+    <a class="card v-big">
+      <img src="//img02.hua.com/pc/pimg/home/home_channel_birthday.png" />
+    </a>
+
+    <!-- 第四列 -->
+    <div class="col">
+      <div class="row">
+        <a class="card v-mini">
+          <img src="//img02.hua.com/pc/pimg/home/home_channel_express.png" />
+        </a>
+        <a class="card v-mini">
+          <img src="//img02.hua.com/pc/pimg/home/home_channel_business.png" />
+        </a>
+      </div>
+      <a class="card h">
+        <img src="//img02.hua.com/pc/pimg/home/home_channel_you_3.png?v2" />
+      </a>
+    </div>
   </div>
 </template>
-
-<script setup lang="ts">
-interface IProps {
-  title: string;
-  subtitle: string;
-  image: string;
-  bg?: string;
+<style scoped>
+.scene-wrap {
+  width: 1240px;
+  margin: 0 auto;
+  display: flex;
+  gap: 20px;
 }
 
-// 默认背景色
-const props = defineProps<IProps>();
-const bg = props.bg ?? "#ffffff";
-</script>
+/* 列布局 */
+.col {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
 
-<style scoped>
-/* 可选：hover 效果 */
-div:hover {
-  transform: translateY(-2px);
-  transition: transform 0.2s ease;
+.row {
+  display: flex;
+  gap: 10px;
+}
+
+/* 卡片通用 */
+.card {
+  position: relative;
+  overflow: hidden;
+  border-radius: 12px;
+  display: block;
+  background: #f5f5f5;
+  cursor: pointer;
+  transition: box-shadow 0.3s ease;
+}
+
+.card:hover {
+  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.12);
+}
+
+/* 图片裁剪策略（重点） */
+.card img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover; /* hua.com 就是 cover */
+  object-position: center top; /* 防止切头 */
+  transition: transform 0.35s ease;
+}
+
+.card:hover img {
+  transform: scale(1.05);
+}
+
+/* 尺寸（与 hua.com 接近） */
+.v-big {
+  width: 300px;
+  height: 520px;
+}
+
+.h {
+  width: 300px;
+  height: 250px;
+}
+
+.v-mini {
+  width: 145px;
+  height: 250px;
 }
 </style>

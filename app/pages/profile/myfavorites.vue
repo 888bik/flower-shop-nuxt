@@ -18,6 +18,7 @@
       >
         <ProductCardV3
           v-for="item in favorites"
+          :key="item.id"
           :title="item.title"
           :image="item.cover"
           :unit="item.unit"

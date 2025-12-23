@@ -24,13 +24,19 @@
       <Favorite @require-login="onRequireLogin" @toggled="onToggled" />
     </div>
     <div class="absolute bottom-2 right-2 z-10 p-2 shadow">
-      <v-btn>查看图片</v-btn>
+      <v-btn @click="openPictureBrowser">查看图片</v-btn>
     </div>
+    <PictureBrowser
+      v-if="showBrowser"
+      :picture-urls="displayImages"
+      :close-click="closeBrowser"
+    />
   </div>
 </template>
 
 <script setup lang="ts">
 import { computed } from "vue";
+import PictureBrowser from "~/components/PictureBrowser.vue";
 import Favorite from "~/assets/base-ui/Favorite.vue";
 
 interface IProps {
@@ -52,11 +58,19 @@ const displayImages = computed(() => {
   return arr;
 });
 
+const showBrowser = ref(false);
+
 function onRequireLogin() {
   emit("require-login");
 }
 function onToggled(payload: { isFavorite: boolean; likeCount: number }) {
   emit("toggled", payload);
+}
+function openPictureBrowser() {
+  showBrowser.value = true;
+}
+function closeBrowser() {
+  showBrowser.value = false;
 }
 </script>
 

@@ -153,16 +153,16 @@ export interface GoodsSales {
   rating: number; // 5.0
 }
 
-export interface GoodsDelivery {
-  expressId: number;
-  fee: number;
-  templateName: string | null;
-}
+// export interface GoodsDelivery {
+//   expressId: number;
+//   fee: number;
+//   templateName: string | null;
+// }
 
 export interface GoodsDetailResponse {
   id: number;
   title: string;
-  subtitle: string | null;
+  description: string | null;
   category: GoodsCategory;
   cover: string;
   banners: string[];
@@ -172,7 +172,7 @@ export interface GoodsDetailResponse {
   sales: GoodsSales;
   unit: string; // "件"
   contentHtml: string | null;
-  delivery: GoodsDelivery;
+  // delivery: GoodsDelivery;
   isAvailable: boolean;
   createTime: number; // 时间戳（秒/毫秒看后端约定）
   likeCount: number;

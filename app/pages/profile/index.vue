@@ -11,13 +11,16 @@
             :style="{ borderColor: 'var(--c-border)' }"
           >
             <img
-              v-if="profile.user?.avatar"
-              :src="profile.user.avatar"
+              :src="avatarSrc"
               :alt="displayName"
               class="w-full h-full object-cover"
               loading="lazy"
             />
-            <div v-else class="text-2xl font-semibold text-onSurface">
+            <div
+              v-if="!mounted || !profile.user?.avatar"
+              class="absolute inset-0 flex items-center justify-center text-2xl font-semibold text-onSurface"
+              aria-hidden="true"
+            >
               {{ initials }}
             </div>
           </div>
@@ -28,11 +31,11 @@
             </div>
             <div class="text-sm text-muted mt-1">
               <span class="inline-block mr-3"
-                >角色：<span class="font-medium text-text">{{
-                  profile.user?.role ?? "user"
+                >会员：<span class="font-medium text-text">{{
+                  profile.level?.name ?? "青铜会员"
                 }}</span></span
               >
-              <span v-if="profile.info?.name" class="inline-block"
+              <span v-if="mounted && profile.info?.name" class="inline-block"
                 >真实名：{{ profile.info.name }}</span
               >
             </div>
@@ -57,8 +60,7 @@
           </div>
         </div>
 
-        <!-- 关键统计 -->
-        <div class="md:col-span-2 grid grid-cols-3 gap-4">
+        <div class="md:col-span-2 grid grid-cols-2 gap-4">
           <div
             class="p-4 rounded-lg bg-page border flex flex-col"
             :style="{ borderColor: 'var(--c-border)' }"
@@ -73,23 +75,9 @@
             class="p-4 rounded-lg bg-page border flex flex-col"
             :style="{ borderColor: 'var(--c-border)' }"
           >
-            <div class="text-xs text-muted">累计佣金</div>
+            <div class="text-xs text-muted">分享订单数</div>
             <div class="mt-2 text-lg font-semibold text-accent">
-              ¥{{ formatMoney(profile.stats.commission) }}
-            </div>
-          </div>
-
-          <div
-            class="p-4 rounded-lg bg-page border flex flex-col"
-            :style="{ borderColor: 'var(--c-border)' }"
-          >
-            <div class="text-xs text-muted">可提现</div>
-            <div class="mt-2 text-lg font-semibold text-accent">
-              ¥{{
-                formatMoney(
-                  profile.stats.noCashOutPrice ?? profile.stats.cashOutPrice
-                )
-              }}
+              {{ profile.stats.shareOrderNum ?? 0 }}
             </div>
           </div>
         </div>
@@ -113,12 +101,6 @@
             :style="{ borderColor: 'var(--c-border)', color: 'var(--c-text)' }"
           >
             账单 ({{ profile.bills?.length ?? 0 }})
-          </button>
-          <button
-            @click="withdraw"
-            class="px-3 py-2 rounded-md bg-accent text-black"
-          >
-            我要提现
           </button>
         </div>
 
@@ -144,7 +126,7 @@
           >
         </div>
 
-        <div v-if="profile.bills && profile.bills.length">
+        <div v-if="mounted && profile.bills && profile.bills.length">
           <ul class="space-y-3">
             <li
               v-for="b in profile.bills.slice(0, 6)"
@@ -171,6 +153,7 @@
             </li>
           </ul>
         </div>
+
         <div v-else class="text-sm text-muted">暂无分佣账单</div>
       </div>
 
@@ -188,7 +171,7 @@
           >
         </div>
 
-        <div v-if="profile.addresses && profile.addresses.length">
+        <div v-if="mounted && profile.addresses && profile.addresses.length">
           <ul class="space-y-2">
             <li
               v-for="a in profile.addresses.slice(0, 3)"
@@ -202,14 +185,14 @@
             </li>
           </ul>
         </div>
+
         <div v-else class="text-sm text-muted">暂无地址，请前往添加</div>
       </div>
     </div>
 
-    <!-- Footer actions -->
     <div class="mt-6 flex justify-end gap-3">
       <button
-        @click="logout"
+        @click="authStore.logout"
         class="px-4 py-2 rounded-md bg-transparent border"
         :style="{ borderColor: 'var(--c-border)', color: 'var(--c-text)' }"
       >
@@ -217,20 +200,22 @@
       </button>
     </div>
 
-    <!-- Loading / Error -->
     <div v-if="loading" class="mt-6 text-center text-muted">加载中…</div>
     <div v-if="error" class="mt-6 text-center text-rose-500">{{ error }}</div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, watchEffect } from "vue";
+import { ref, computed, onMounted, watch } from "vue";
 import { useRouter } from "vue-router";
 import type { UserProfile } from "~/types/api/user";
+
 definePageMeta({ layout: "profile" });
 
 const router = useRouter();
 const userStore = useUserStore();
+const authStore = useAuthStore();
+
 const profile = ref<UserProfile>({
   user: null,
   info: null,
@@ -246,12 +231,21 @@ const profile = ref<UserProfile>({
   },
   level: null,
 });
+
 const loading = ref(false);
 const error = ref<string | null>(null);
 
-const displayName = computed(
-  () => profile.value.user?.nickname || profile.value.user?.username || "用户"
-);
+const mounted = ref(false);
+
+const avatarSrc = computed(() => {
+  if (!mounted.value) return "/default-avatar.svg";
+  return userStore.userInfo?.user?.avatar || "/default-avatar.svg";
+});
+
+const displayName = computed(() => {
+  if (!mounted.value) return "用户";
+  return profile.value.user?.nickname || profile.value.user?.username || "用户";
+});
 
 const initials = computed(() => {
   const n = displayName.value;
@@ -259,10 +253,10 @@ const initials = computed(() => {
 });
 
 const lastLoginText = computed(() => {
+  if (!mounted.value) return "—";
   const t = profile.value.user?.lastLoginTime;
   if (!t) return "—";
-  const d = new Date(t * 1000);
-  return d.toLocaleString();
+  return new Date(t * 1000).toLocaleString();
 });
 
 function formatMoney(v: any) {
@@ -284,7 +278,7 @@ function billStatusText(s: any) {
 }
 
 function timeAgo(ts: number | undefined) {
-  if (!ts) return "—";
+  if (!ts || !mounted.value) return "—";
   const diff = Math.floor((Date.now() - ts * 1000) / 1000);
   if (diff < 60) return `${diff}s 前`;
   if (diff < 3600) return `${Math.floor(diff / 60)}m 前`;
@@ -296,7 +290,7 @@ function goToEdit() {
   router.push("/profile/edit");
 }
 function goToOrders() {
-  router.push("/order");
+  router.push("/orders");
 }
 function goToAddresses() {
   router.push("/profile/addresses");
@@ -304,28 +298,22 @@ function goToAddresses() {
 function goToBills() {
   router.push("/profile/bills");
 }
-function withdraw() {
-  router.push("/profile/withdraw");
-}
-
-function logout() {
-  removeToken("user-token");
-  router.push("/login");
-}
 
 onMounted(() => {
+  mounted.value = true;
   if (userStore.userInfo) {
     profile.value = { ...profile.value, ...userStore.userInfo };
   }
 });
 
-watchEffect(() => {
-  if (userStore.userInfo) {
-    profile.value = { ...profile.value, ...userStore.userInfo };
+watch(
+  () => userStore.userInfo,
+  (v) => {
+    if (!mounted.value) return; // do not mutate during SSR/hydration
+    if (v) profile.value = { ...profile.value, ...v };
   }
-});
+);
 </script>
-
 <style scoped>
 .shadow-soft-lg {
   box-shadow: 0 8px 30px rgba(15, 23, 36, 0.06);
@@ -344,5 +332,15 @@ watchEffect(() => {
 }
 .border-borderColor {
   border-color: var(--c-border);
+}
+.w-28.h-28 {
+  position: relative;
+}
+.w-28.h-28 .absolute {
+  position: absolute;
+  left: 0;
+  top: 0;
+  right: 0;
+  bottom: 0;
 }
 </style>

@@ -19,7 +19,6 @@
             class="text-sm px-3 py-2 rounded-full border bg-red-50 text-red-600 hover:opacity-95"
             :disabled="cartList.length === 0"
             @click="confirmClearCart"
-            aria-label="清空购物车"
           >
             清空购物车
           </button>
@@ -101,7 +100,7 @@
 
                   <!-- image -->
                   <NuxtLink
-                    :to="`/goods/${item.goodsId}`"
+                    :to="`/detail/${item.goodsId}`"
                     class="block w-24 h-24 rounded-lg overflow-hidden shrink-0"
                   >
                     <img
@@ -235,11 +234,9 @@
             </div>
           </div>
         </div>
-        <!-- /.checkout-layout -->
       </template>
     </div>
 
-    <!-- mobile bottom bar -->
     <div
       class="fixed left-0 right-0 bottom-0 z-50 md:hidden mobile-checkout-bar"
     >
@@ -272,6 +269,24 @@
       </div>
     </div>
   </div>
+  <!-- 清空购物车确认 Dialog -->
+  <v-dialog v-model="clearDialog" max-width="400">
+    <v-card>
+      <v-card-title class="text-lg font-medium">清空购物车</v-card-title>
+      <v-card-text> 确认要清空购物车吗？此操作不可撤销。 </v-card-text>
+      <v-card-actions class="justify-end gap-2">
+        <!-- 取消按钮 -->
+        <v-btn variant="tonal" color="secondary" @click="clearDialog = false">
+          取消
+        </v-btn>
+
+        <!-- 确认按钮 -->
+        <v-btn variant="tonal" color="error" @click="confirmClearCartDialog">
+          确认
+        </v-btn>
+      </v-card-actions>
+    </v-card>
+  </v-dialog>
 </template>
 
 <script setup lang="ts">
@@ -284,11 +299,7 @@ const cartStore = useCartStore();
 
 // 绑定 store 列表（响应式）
 const cartList = computed<CartItemType[]>(() => cartStore.list ?? []);
-
-// 初次加载
-onMounted(() => {
-  cartStore.fetchCart();
-});
+const clearDialog = ref(false);
 
 /** 格式化金钱（确保两位小数） */
 function formatPrice(v: any) {
@@ -389,10 +400,26 @@ const removeItem = async (item: CartItemType) => {
     cartStore.fetchCart();
   }
 };
-
+/** 打开确认清空 Dialog */
 function confirmClearCart() {
-  if (!confirm("确认清空购物车？")) return;
-  clearCart();
+  clearDialog.value = true;
+}
+
+async function confirmClearCartDialog() {
+  clearDialog.value = false;
+  try {
+    // 清空本地购物车数据
+    cartStore.clearLocal();
+
+    // 请求清空服务器端购物车
+    await cartStore.clearCart();
+
+    $toast?.success?.("购物车已清空");
+  } catch (err) {
+    console.error(err);
+    $toast?.error?.("清空失败");
+    cartStore.fetchCart();
+  }
 }
 
 const clearCart = async () => {
@@ -414,7 +441,7 @@ function saveForLater() {
   cartList.value.forEach((i) => {
     if (i.checked && i.valid) i.checked = false;
   });
-  $toast?.success?.("已保存为稍后购买");
+  $toast.success?.("已保存为稍后购买");
 }
 
 function proceedToCheckout() {
@@ -422,7 +449,7 @@ function proceedToCheckout() {
     .filter((i) => i.checked && i.valid)
     .map((i) => i.id);
   if (!selected.length) {
-    $toast?.error?.("请选择商品");
+    $toast.error?.("请选择商品");
     return;
   }
   router.push({ path: "/checkout", query: { carts: selected.join(",") } });
@@ -431,25 +458,19 @@ function proceedToCheckout() {
 function refresh() {
   cartStore.fetchCart();
 }
+
+// 初次加载
+onMounted(() => {
+  cartStore.fetchCart();
+});
 </script>
 
 <style scoped>
-.bg-page {
-  background-color: var(--c-bg);
-}
 .surface-card,
 .bg-surface {
   background-color: var(--c-surface);
 }
-.text-text {
-  color: var(--c-text);
-}
-.text-muted {
-  color: var(--c-muted);
-}
-.text-primary {
-  color: var(--c-primary);
-}
+
 .text-primary-on {
   color: var(--c-on-surface);
 }
@@ -496,7 +517,6 @@ function refresh() {
   box-shadow: 0 8px 26px rgba(255, 111, 163, 0.12);
 }
 
-/* mobile bar */
 .mobile-checkout-bar {
   background: var(--c-surface);
   border-top: 1px solid var(--c-border);
@@ -516,22 +536,17 @@ function refresh() {
   box-shadow: 0 12px 30px rgba(0, 0, 0, 0.06);
 }
 
-/* ---- 新增：布局 & 左侧滚动区域 ---- */
-
-/* 父容器高度保证（留出 header / 顶部间距，按你项目调整） */
 .checkout-layout {
-  min-height: calc(100vh - 160px); /* 调整这个值以适配你的 header/padding */
+  min-height: calc(100vh - 160px);
 }
 
-/* 左侧滚动区域：桌面启用内部滚动 */
 .left-scroll {
-  max-height: calc(100vh - 220px); /* 留出 header + 页内间距（按需调整） */
+  max-height: calc(100vh - 220px);
   overflow-y: auto;
-  -webkit-overflow-scrolling: touch; /* iOS 平滑滚动 */
-  padding-right: 8px; /* 防止滚动条覆盖内容 */
+  -webkit-overflow-scrolling: touch;
+  padding-right: 8px;
 }
 
-/* 让右侧结算栏 sticky（保留原 top 值） */
 .checkout-card {
   position: sticky;
   top: 24px;
@@ -549,13 +564,11 @@ function refresh() {
     top: auto;
   }
 
-  /* mobile bottom bar 覆盖时给页面底部一点间距 */
   .min-h-screen {
     padding-bottom: 84px;
   }
 }
 
-/* small helpers */
 .text-primary-on {
   color: var(--c-on-surface);
 }

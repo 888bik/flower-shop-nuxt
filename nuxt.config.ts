@@ -26,6 +26,9 @@ export default defineNuxtConfig({
     public: {
       apiBase: "/api",
       timeout: 20000,
+      siteName: "花语商城",
+      defaultImage: "/flower-shop.svg",
+      defaultDescription: "全国鲜花速递，当天送达，送花就上花语商城。",
     },
   },
   vite: {
@@ -44,6 +47,22 @@ export default defineNuxtConfig({
       template: {
         transformAssetUrls,
       },
+    },
+  },
+
+  app: {
+    head: {
+      htmlAttrs: {
+        lang: "zh-CN",
+      },
+      meta: [
+        {
+          name: "description",
+          content: "全国鲜花速递，当天送达，送花就上花语商城。",
+        },
+        { name: "keywords", content: "鲜花,鲜花速递,送花,花语商城" },
+      ],
+      link: [{ rel: "icon", type: "image/svg+xml", href: "/flower-shop.svg" }],
     },
   },
 });

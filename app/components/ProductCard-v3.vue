@@ -16,17 +16,19 @@
               {{ description }}
             </p>
           </div>
-          <div class="card__footer">
-            <div class="card__price">¥{{ price }} / {{ unit }}</div>
-            <div class="card__button" @click.stop="$emit('BtnClick')">
-              <svg viewBox="0 0 24 24" width="16" height="16">
-                <path
-                  d="M12 21s-6.7-4.35-9.33-7.03C.6 11.9.4 8.5 2.5 6.4 4.6 4.3 8 4.6 10.1 6.7L12 8.6l1.9-1.9c2.1-2.1 5.5-2.4 7.6-.3 2.1 2.1 1.9 5.5-.2 7.6C18.7 16.65 12 21 12 21z"
-                  fill="currentColor"
-                />
-              </svg>
+          <template v-if="showFooter">
+            <div class="card__footer">
+              <div class="card__price">¥{{ price }} / {{ unit }}</div>
+              <div class="card__button" @click.stop="$emit('BtnClick')">
+                <svg viewBox="0 0 24 24" width="16" height="16">
+                  <path
+                    d="M12 21s-6.7-4.35-9.33-7.03C.6 11.9.4 8.5 2.5 6.4 4.6 4.3 8 4.6 10.1 6.7L12 8.6l1.9-1.9c2.1-2.1 5.5-2.4 7.6-.3 2.1 2.1 1.9 5.5-.2 7.6C18.7 16.65 12 21 12 21z"
+                    fill="currentColor"
+                  />
+                </svg>
+              </div>
             </div>
-          </div>
+          </template>
         </div>
       </div>
     </div>
@@ -40,6 +42,7 @@ interface IProps {
   price: string | number;
   image: string;
   unit: string | number;
+  showFooter?: boolean;
 }
 interface IEmits {
   (e: "BtnClick"): void;
@@ -51,6 +54,7 @@ const {
   price,
   image,
   unit,
+  showFooter = true,
 } = defineProps<IProps>();
 const description = desc ?? "鲜花，温暖你的每一天";
 const emit = defineEmits<IEmits>();

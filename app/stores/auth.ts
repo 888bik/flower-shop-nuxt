@@ -5,33 +5,59 @@ import { defineStore } from "pinia";
 // 登录 / 退出通知	通知其他 store（购物车、地址）
 export const useAuthStore = defineStore("auth", {
   state: () => ({
-    token: null as string | null,
+    accessToken: null as string | null,
+    refreshToken: null as string | null,
     initialized: false,
+    isLoggingOut: false,
   }),
 
   getters: {
-    isLogin: (state) => !!state.token,
+    isLogin: (state) => !!state.accessToken && state.initialized,
   },
 
   actions: {
     init() {
-      const token = getToken("user-token");
-      this.token = token || null;
+      this.accessToken = getToken("accessToken") || null;
+      this.refreshToken = getToken("refreshToken") || null;
       this.initialized = true;
     },
 
-    login(token: string, rememberMe?: boolean) {
-      this.token = token;
-      setToken("user-token", token, rememberMe);
+    login(
+      tokens: { accessToken: string; refreshToken: string },
+      rememberMe?: boolean
+    ) {
+      this.accessToken = tokens.accessToken;
+      this.refreshToken = tokens.refreshToken;
+
+      setToken("accessToken", tokens.accessToken, rememberMe);
+      setToken("refreshToken", tokens.refreshToken, rememberMe);
     },
 
     logout() {
-      this.token = null;
-      removeToken("user-token");
+      if (this.isLoggingOut) return;
+      this.isLoggingOut = true;
 
-      // 清空所有业务 store
+      this.accessToken = null;
+      this.refreshToken = null;
+      removeToken("accessToken");
+      removeToken("refreshToken");
+
+      // 清空业务 store
       useUserStore().$reset();
       useCartStore().$reset();
+
+      if (import.meta.client) {
+        navigateTo("/login", { replace: true });
+      }
+    },
+    updateAccessToken(newToken: string) {
+      this.accessToken = newToken;
+      setToken("accessToken", newToken);
+    },
+
+    updateRefreshToken(newToken: string) {
+      this.refreshToken = newToken;
+      setToken("refreshToken", newToken);
     },
   },
 });

@@ -39,12 +39,12 @@
       class="hover:text-primary"
     />
 
-    <v-list-item
+    <!-- <v-list-item
       to="/profile/bills"
       prepend-icon="mdi-cash"
       title="账单 / 分佣"
       class="hover:text-primary"
-    />
+    /> -->
 
     <v-list-item
       to="/orders"
@@ -55,12 +55,12 @@
 
     <v-divider class="my-2" />
 
-    <v-list-item
+    <!-- <v-list-item
       to="/profile/withdraw"
       prepend-icon="mdi-bank"
       title="提现"
       class="hover:text-primary"
-    />
+    /> -->
   </v-list>
 </template>
 

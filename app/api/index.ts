@@ -7,6 +7,7 @@ import areas from "./areas";
 import coupon from "./coupon";
 import orders from "./orders";
 import review from "./review";
+import notice from "./notice";
 
 export default (api: MyRequest) => ({
   goods: goods(api),
@@ -17,4 +18,5 @@ export default (api: MyRequest) => ({
   coupon: coupon(api),
   orders: orders(api),
   review: review(api),
+  notice: notice(api),
 });
