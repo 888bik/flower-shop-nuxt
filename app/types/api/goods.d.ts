@@ -79,10 +79,10 @@ export interface ProductItem {
   id: number;
   title: string;
   cover: string;
-  rating: number | string;
+  rating: number;
   saleCount: number;
   unit: string;
-  minPrice: string;
+  minPrice: number;
   minOprice: string;
   stock: number;
   minStock: number;
@@ -97,17 +97,21 @@ export interface ProductListResponse {
   totalCount: number;
 }
 
-export interface CategoryListResponse {
+export interface CategoryItem {
   id: number;
   name: string;
   status: number;
-  createTime: string;
-  updateTime: string;
+  createTime: number;
+  updateTime: number;
   categoryId: number;
   order: number;
-  type: number;
   typeId: number;
-  typeName: string;
+}
+
+export interface CategoryGroup {
+  name: string; // 分类类型名称：鲜花用途 / 鲜花花材
+  typeId: number;
+  children: CategoryItem[];
 }
 
 export interface GoodsPrice {

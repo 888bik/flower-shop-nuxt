@@ -33,9 +33,10 @@ import { computed } from "vue";
 interface IProps {
   image: string;
   title: string;
-  desc: string;
-  price: number;
+  desc?: string;
+  price: number | string;
   badge?: string;
+  rating?: number;
 }
 interface IEmits {
   (e: "add"): void;
@@ -58,13 +59,10 @@ const badgeClass = computed(() => {
 <style scoped>
 .card {
   --card-bg: #ffffff;
-  /* --card-accent: #7c3aed; */
   --card-accent: #f98fb6;
   --card-text: #1e293b;
   --card-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05);
 
-  /* width: 190px;
-  height: 254px; */
   width: 100%;
   min-height: 300px;
   background: var(--card-bg);
@@ -118,7 +116,6 @@ const badgeClass = computed(() => {
   position: absolute;
   top: 12px;
   right: 12px;
-  /* background: #10b981; */
   color: white;
   padding: 0.25em 0.5em;
   border-radius: 999px;

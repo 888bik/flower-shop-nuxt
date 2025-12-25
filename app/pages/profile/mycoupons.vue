@@ -62,7 +62,7 @@
   </div>
 </template>
 
-<script setup lang="ts">
+<script setup lang="ts" client>
 import { ref, computed, onMounted } from "vue";
 import ThreeBodyLoader from "~/assets/base-ui/ThreeBodyLoader.vue";
 import type { CouponItem } from "~/types/api/coupon";

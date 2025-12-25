@@ -1,6 +1,5 @@
 <template>
   <div class="coupon-page">
-    <!-- Header -->
     <section class="coupon-header">
       <h1 class="title">领券中心</h1>
       <p class="desc">先领券，再下单，最高立减 ¥100</p>
@@ -43,14 +42,12 @@
             <div class="limit">满 {{ coupon.minPrice }} 可用</div>
           </div>
 
-          <!-- Center -->
           <div class="coupon-center">
             <div class="name">{{ coupon.name }}</div>
             <div class="time">有效期：{{ coupon.time }}</div>
             <div class="scope">{{ coupon.scope }}</div>
           </div>
 
-          <!-- Right -->
           <div class="coupon-right">
             <button
               class="receive-btn"
@@ -88,11 +85,15 @@ interface Coupon {
 }
 
 const { $api } = useNuxtApp();
+const authStore = useAuthStore();
 
 const coupons = ref<CouponItem[]>([]);
 const loading = ref(false);
 
 async function receiveCoupon(coupon: Coupon) {
+  if (!authStore.isLogin) {
+    return $toast.success("请先登录");
+  }
   if (coupon.received || coupon.stock === 0) return;
   coupon.received = true;
   try {

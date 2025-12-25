@@ -1,6 +1,5 @@
 <template>
   <div class="relative w-full">
-    <!-- 外层容器控制响应式高度（这里用 tailwind + 自定义 CSS） -->
     <div class="banner-outer">
       <Swiper
         class="banner-swiper w-full"
@@ -15,7 +14,7 @@
             class="w-full h-full bg-cover bg-center flex items-center justify-center relative"
             :style="{ backgroundImage: `url(${slide.image})` }"
           >
-            <div class="absolute inset-0 flex items-center px-6 md:px-12">
+            <!-- <div class="absolute inset-0 flex items-center px-6 md:px-12">
               <div class="space-y-2">
                 <h2
                   class="text-xl md:text-4xl font-bold text-white bg-black/40 px-2 py-1 rounded"
@@ -33,7 +32,7 @@
                   {{ slide.btnText }}
                 </button>
               </div>
-            </div>
+            </div> -->
           </div>
         </SwiperSlide>
       </Swiper>

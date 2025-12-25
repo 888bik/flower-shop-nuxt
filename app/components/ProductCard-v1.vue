@@ -1,237 +1,222 @@
 <template>
-  <article
-    class="product-card group"
-    :aria-labelledby="`p-${product.id}-title`"
-    role="article"
-    @click="onCardClick"
-  >
-    <!-- 图片区 -->
-    <div class="card-media">
-      <!-- 占位背景 -->
-      <div v-if="!imageLoaded" class="skeleton"></div>
-      <img
-        :src="displayImage"
-        :alt="product.title || `product-${product.id}`"
-        class="media-img"
-        :class="{ loaded: imageLoaded }"
-        loading="lazy"
-        @load="onImageLoad"
-      />
+  <div class="card" role="article" aria-label="product-card">
+    <div class="card__shine" />
+    <div class="card__glow" />
 
-      <!-- 小缩略图切换 -->
-      <div v-if="product.banners?.length > 1" class="thumbs" @click.stop>
-        <button
-          v-for="(img, i) in product.banners"
-          :key="i"
-          @click="changeImage(i)"
-          :class="['thumb', { active: currentImg === i }]"
-          :aria-label="`切换到第 ${i + 1} 张`"
-        >
-          <img :src="img" class="thumb-img" loading="lazy" />
-        </button>
-      </div>
-
-      <div v-if="discountPercent > 0" class="discount">
+    <div class="card__content">
+      <div class="card__discount" v-if="discountPercent > 0">
         -{{ discountPercent }}%
       </div>
-    </div>
 
-    <!-- 内容区 -->
-    <div class="card-body">
-      <h3 class="title" :title="product.title" :id="`p-${product.id}-title`">
-        {{ product.title }}
-      </h3>
-
-      <div class="meta-row">
-        <div class="rating">
-          <svg class="star" viewBox="0 0 24 24" aria-hidden>
-            <path
-              d="M12 17.27L18.18 21 16.54 13.97 22 9.24 14.81 8.62 12 2 9.19 8.62 2 9.24 7.46 13.97 5.82 21z"
-            />
-          </svg>
-          <span class="num">{{ product.rating }}</span>
+      <div class="card__image-wrap">
+        <div class="card__image" @click="$emit('clickCard')">
+          <img :src="displayImage" alt="" class="media-img" loading="lazy" />
         </div>
 
-        <div class="sold">· {{ product.saleCount }} 已售</div>
-
-        <div class="cats" v-if="categoryNames.length">
-          <span
-            v-for="(c, i) in categoryNames"
-            :key="i"
-            class="pill"
-            :title="c"
-            >{{ c }}</span
-          >
-        </div>
-      </div>
-
-      <div class="bottom-row">
-        <div class="price">
-          <div class="now">¥{{ product.minPrice }}</div>
-          <div v-if="product.minOprice" class="old">
-            ¥{{ product.minOprice }}
-          </div>
-        </div>
-
-        <div class="actions">
+        <div v-if="banners && banners.length > 1" class="thumbs" @click.stop>
           <button
-            :disabled="product.stock === 0"
-            class="add-btn"
-            @click.stop="onAddToCart"
-            aria-label="加入购物车"
+            v-for="(img, i) in banners"
+            :key="i"
+            @click.stop.prevent="changeImage(i)"
+            :class="['thumb', { active: currentImg === i }]"
+            :aria-label="`切换到第 ${i + 1} 张`"
           >
-            加入购物车
+            <img :src="img" class="thumb-img" loading="lazy" />
           </button>
         </div>
       </div>
+
+      <div class="card__text">
+        <p class="card__title" :title="title">{{ title }}</p>
+        <p class="card__description" v-if="desc">{{ desc }}</p>
+      </div>
+
+      <div class="card__footer">
+        <div class="card__left">
+          <div class="card__price-row">
+            <div class="card__price-current">¥ {{ formattedPrice }}</div>
+            <div v-if="hasOldPrice" class="card__price-old">
+              ¥ {{ formattedOldPrice }}
+            </div>
+          </div>
+
+          <div class="card__meta-row">
+            <div v-if="typeof sold !== 'undefined'" class="card__sold">
+              已售 {{ sold }}
+            </div>
+            <div
+              v-if="rating !== undefined && rating !== null"
+              class="card__rating"
+              :aria-label="`评分 ${rating} 星`"
+            >
+              <RatingStars :model-value="rating" :size="15" />
+            </div>
+          </div>
+        </div>
+
+        <div class="card__right">
+          <BuyNowButton class="card__button" @click.stop="$emit('add')" />
+        </div>
+      </div>
     </div>
-  </article>
+  </div>
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from "vue";
-import type { ProductItem } from "~/types/api/goods";
+import { ref, computed, watch } from "vue";
+import BuyNowButton from "~/assets/base-ui/BuyNowButton.vue";
+import RatingStars from "./RatingStars.vue";
 
 interface IProps {
-  product: ProductItem;
+  image?: string;
+  banners?: string[]; // 缩略图数组
+  title: string;
+  desc?: string;
+  price: number | string; // 实付（现价）
+  oldPrice?: number | string; // 原价
+  rating?: number;
+  sold?: number | string;
 }
-
 interface IEmits {
-  (e: "add", p: ProductItem): void;
-  (e: "quick", p: ProductItem): void;
-  (e: "click", p: ProductItem): void;
+  (e: "add"): void;
+  (e: "clickCard"): void;
 }
-
 const props = defineProps<IProps>();
 const emit = defineEmits<IEmits>();
 
-const authStore = useAuthStore();
+const {
+  image = "",
+  banners = [],
+  title,
+  desc,
+  price,
+  oldPrice,
+  rating,
+  sold,
+} = props;
 
+// 当前显示图
 const currentImg = ref(0);
-const imageLoaded = ref(false);
-const displayImage = computed(() =>
-  props.product.banners && props.product.banners.length
-    ? props.product.banners[currentImg.value]
-    : props.product.cover ?? ""
-);
-
-function onImageLoad() {
-  imageLoaded.value = true;
-}
-
-// 缩略图切换时重置加载状态
+const displayImage = computed(() => {
+  if (banners && banners.length) {
+    return banners[currentImg.value];
+  }
+  return image;
+});
 function changeImage(i: number) {
   currentImg.value = i;
-  imageLoaded.value = false;
 }
 
-const categoryNames = computed(() =>
-  (props.product.categories ?? []).slice(0, 2).map((c: any) => c.name)
+// 价格格式化
+function fmt(p: number | string | undefined) {
+  if (p === undefined || p === null || p === "") return "";
+  const n =
+    typeof p === "number" ? p : Number(String(p).replace(/[^0-9.-]+/g, ""));
+  if (isNaN(n)) return String(p);
+  return n.toFixed(2);
+}
+const formattedPrice = computed(() => fmt(price));
+const formattedOldPrice = computed(() => fmt(oldPrice));
+const hasOldPrice = computed(
+  () =>
+    !!(
+      oldPrice !== undefined &&
+      oldPrice !== null &&
+      String(formattedOldPrice.value) !== ""
+    )
 );
 
+// 折扣百分比（向下取整）
 const discountPercent = computed(() => {
-  const p = Number(props.product.minPrice);
-  const o = Number(props.product.minOprice ?? 0);
-  if (!o || o <= p) return 0;
-  return Math.round(((o - p) / o) * 100);
+  const p = Number(price);
+  const o = Number(oldPrice ?? 0);
+  if (!o || isNaN(p) || isNaN(o) || o <= p) return 0;
+  return Math.floor(((o - p) / o) * 100);
 });
-
-function onAddToCart() {
-  if (!authStore.isLogin) {
-    return $toast.error("请先登录");
-  }
-  emit("add", props.product);
-}
-function onCardClick() {
-  emit("click", props.product);
-}
 </script>
 
 <style scoped>
-.product-card {
-  border-radius: 12px;
+.card {
+  --card-bg: #ffffff;
+  --accent: #ff6fa3;
+  --discount-color: #ef4444;
+  --price-color: #d97706; /* 折后价格强调色 */
+  width: 100%;
+  background: var(--card-bg);
+  border-radius: 14px;
   overflow: hidden;
-  background: var(--card-bg, #0b0b0c);
+  position: relative;
   border: 1px solid rgba(255, 255, 255, 0.04);
   transition: transform 0.22s ease, box-shadow 0.22s ease;
-  will-change: transform;
-  transform: translateZ(0);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.06);
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue",
+    Arial;
+}
+
+.card__shine {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    120deg,
+    rgba(255, 255, 255, 0) 40%,
+    rgba(255, 255, 255, 0.85) 50%,
+    rgba(255, 255, 255, 0) 60%
+  );
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+.card__glow {
+  position: absolute;
+  inset: -10px;
+  background: radial-gradient(
+    circle at 50% 0%,
+    rgba(255, 111, 163, 0.12) 0%,
+    rgba(255, 111, 163, 0) 70%
+  );
+  opacity: 0;
+  transition: opacity 0.4s;
+}
+
+.card__content {
+  padding: 12px;
   display: flex;
   flex-direction: column;
-}
-
-.product-card:hover {
-  transform: translateY(-6px);
-  box-shadow: 0 14px 40px rgba(2, 6, 23, 0.36);
-}
-
-.card-media {
+  gap: 10px;
   position: relative;
-  height: 280px;
-  background: #111;
-  overflow: hidden;
-}
-/* 占位背景 */
-.image-placeholder {
-  width: 100%;
-  height: 100%;
-  background: #222;
-  position: absolute;
-  top: 0;
-  left: 0;
-  z-index: 1;
-}
-/* 骨架动画 */
-.skeleton {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: #222;
-  overflow: hidden;
-}
-.skeleton::after {
-  content: "";
-  display: block;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(
-    90deg,
-    rgba(34, 34, 34, 0) 0%,
-    rgba(55, 55, 55, 0.3) 50%,
-    rgba(34, 34, 34, 0) 100%
-  );
-  position: absolute;
-  top: 0;
-  left: -100%;
-  animation: shimmer 1.5s infinite;
-}
-@keyframes shimmer {
-  0% {
-    left: -100%;
-  }
-  100% {
-    left: 100%;
-  }
 }
 
-.media-img {
+.card__discount {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: linear-gradient(45deg, #ff6b6b, #ff4d4f);
+  color: #fff;
+  padding: 6px 8px;
+  border-radius: 8px;
+  font-weight: 700;
+  font-size: 12px;
+  z-index: 5;
+}
+
+.card__image-wrap {
+  position: relative;
+}
+.card__image {
+  width: 100%;
+  aspect-ratio: 3 / 4;
+  border-radius: 12px;
+  overflow: hidden;
+  background: linear-gradient(45deg, #ff9a9e, #ff6fa3);
+  display: flex;
+  transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+  align-items: center;
+  justify-content: center;
+}
+.card__image img {
   width: 100%;
   height: 100%;
   object-fit: cover;
   display: block;
-  opacity: 0;
-  z-index: 2;
-  transition: opacity 0.4s ease;
-}
-
-.media-img.loaded {
-  opacity: 1;
-}
-
-.product-card:hover .media-img {
-  transform: scale(1.03);
 }
 
 .thumbs {
@@ -239,27 +224,24 @@ function onCardClick() {
   left: 8px;
   bottom: 8px;
   display: flex;
-  gap: 6px;
-  background: rgba(0, 0, 0, 0.28);
+  gap: 8px;
   padding: 6px;
   border-radius: 8px;
-  backdrop-filter: blur(6px);
+  background: rgba(0, 0, 0, 0.28);
+  z-index: 6;
 }
 .thumb {
-  width: 34px;
-  height: 34px;
+  width: 40px;
+  height: 40px;
   border-radius: 6px;
   overflow: hidden;
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.06);
   padding: 0;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
   background: transparent;
-  &:hover {
-    border: 3px solid rgba(255, 255, 255, 0.08);
-  }
 }
 .thumb-img {
   width: 100%;
@@ -268,124 +250,135 @@ function onCardClick() {
   display: block;
 }
 .thumb.active {
-  outline: 2px solid rgba(212, 175, 55, 0.14);
+  outline: 2px solid rgba(255, 215, 64, 0.12);
+  transform: scale(1.02);
 }
 
-/* discount badge */
-.discount {
-  position: absolute;
-  right: 8px;
-  top: 8px;
-  background: #ff6b6b;
-  color: #fff;
-  font-weight: 600;
-  padding: 4px 8px;
-  border-radius: 8px;
-  font-size: 12px;
-}
-
-/* 内容区 */
-.card-body {
-  padding: 12px;
+.card__text {
   display: flex;
   flex-direction: column;
-  gap: 8px;
-  min-height: 132px; /* 保证底部对齐 */
+  gap: 6px;
 }
-
-.title {
-  color: #fff;
+.card__title {
   font-size: 15px;
-  font-weight: 600;
-  line-height: 1.2;
+  font-weight: 700;
+  color: #0f172a;
+  margin: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.card__description {
+  font-size: 13px;
+  color: #334155;
   margin: 0;
   display: -webkit-box;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
+  opacity: 0.85;
 }
 
-/* 元信息行 */
-.meta-row {
+.card__footer {
   display: flex;
-  gap: 8px;
-  align-items: center;
-  font-size: 12px;
-  color: rgba(255, 255, 255, 0.7);
-}
-.rating {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
-.star {
-  width: 14px;
-  height: 14px;
-  fill: #d4af37;
-}
-.cats {
-  margin-left: auto;
-  display: flex;
-  gap: 6px;
-  align-items: center;
-}
-
-/* pill（胶囊标签） */
-.pill {
-  display: inline-block;
-  max-width: 8.8rem;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  font-size: 11px;
-  padding: 4px 8px;
-  border-radius: 9999px;
-  background: rgba(255, 255, 255, 0.04);
-  color: var(--pill-color, #f3f4f6);
-}
-
-/* 底部行（价格+按钮） */
-.bottom-row {
-  display: flex;
-  align-items: end;
   justify-content: space-between;
+  align-items: center;
   gap: 12px;
   margin-top: auto;
 }
-.price .now {
-  font-size: 16px;
-  color: var(--price-color, #d4af37);
-  font-weight: 700;
+
+.card__left {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
 }
-.price .old {
-  font-size: 12px;
-  color: rgba(255, 255, 255, 0.45);
+.card__price-row {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+}
+.card__price-current {
+  font-size: 18px;
+  font-weight: 800;
+  color: var(--price-color);
+}
+.card__price-old {
+  font-size: 13px;
+  color: #94a3b8;
   text-decoration: line-through;
 }
-.add-btn {
-  border: 1px solid rgba(212, 175, 55, 0.2);
-  background: transparent;
-  color: var(--price-color, #d4af37);
-  padding: 8px 10px;
-  border-radius: 8px;
-  cursor: pointer;
-  transition: background 0.18s, color 0.18s;
+
+.card__meta-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 2px;
+  color: #64748b;
+  font-size: 13px;
 }
-.add-btn:hover {
-  background: var(--price-color, #d4af37);
-  color: #000;
+.card__sold {
+  color: #64748b;
+  font-size: 13px;
 }
-.add-btn:disabled {
-  opacity: 0.48;
-  cursor: not-allowed;
+.card__rating {
+  display: flex;
+  gap: 4px;
+  align-items: center;
+}
+.star {
+  fill: rgba(148, 163, 184, 0.35);
+  width: 14px;
+  height: 14px;
+}
+.star--filled {
+  fill: #ffd04b;
 }
 
-/* 防止角在缩放时受像素化影响（减少闪烁） */
-.product-card,
-.card-media,
-.media-img {
-  -webkit-font-smoothing: antialiased;
-  -webkit-backface-visibility: hidden;
-  backface-visibility: hidden;
+.card__right {
+  display: flex;
+  align-items: center;
+}
+.card__button {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  background: linear-gradient(45deg, #ff9a9e, #ff6fa3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  border: none;
+  cursor: pointer;
+  transition: transform 0.16s;
+}
+.card__button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(249, 132, 169, 0.12);
+}
+
+.card:hover {
+  transform: translateY(-10px);
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1),
+    0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  /* border-color: rgba(124, 58, 237, 0.2); */
+  border-color: rgb(255 111 163 / 0.2);
+  /* border-color:rgba(red, green, blue, alpha) ; */
+}
+
+.card:hover .card__shine {
+  opacity: 1;
+  animation: shine 3s infinite;
+}
+.card:hover .card__glow {
+  opacity: 1;
+}
+
+@keyframes shine {
+  0% {
+    background-position: -100% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
 }
 </style>

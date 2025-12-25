@@ -266,12 +266,7 @@ function onBuyNow(id: number) {
   router.push({ path: "/checkout", query: payload });
 }
 async function onAddCart() {
-  try {
-    await cartStore.addCart(detail.id, 1);
-    $toast.success("添加购物车成功");
-  } catch (error) {
-    $toast.error("添加失败，请重新尝试");
-  }
+  await cartStore.addCart(detail.id, 1);
 }
 
 const sanitizedHtml = computed(() => {

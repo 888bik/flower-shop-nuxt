@@ -50,7 +50,11 @@
 
             <div class="flex items-end gap-2 justify-center">
               <v-btn text small @click="openEdit(addr)">编辑</v-btn>
-              <v-btn text small color="error" @click="onDelete(addr)"
+              <v-btn
+                text
+                small
+                color="error"
+                @click="openDeleteConfirm(addr.id)"
                 >删除</v-btn
               >
               <v-btn text small v-if="!addr.isDefault" @click="setDefault(addr)"
@@ -144,10 +148,29 @@
         </v-card-actions>
       </v-card>
     </v-dialog>
+    <v-dialog v-model="deleteDialogVisible" max-width="420">
+      <v-card>
+        <v-card-title class="font-medium text-red-600">
+          确认删除地址
+        </v-card-title>
+
+        <v-card-text class="text-sm text-muted">
+          删除后地址将无法恢复，确定要删除该地址吗？
+        </v-card-text>
+
+        <v-card-actions>
+          <v-spacer />
+          <v-btn text @click="deleteDialogVisible = false">取消</v-btn>
+          <v-btn color="red" :loading="deleteLoading" @click="onDeleteAddress">
+            确认删除
+          </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
   </div>
 </template>
 
-<script setup lang="ts">
+<script setup lang="ts" client>
 import { ref, reactive, onMounted, watch } from "vue";
 import ThreeBodyLoader from "~/assets/base-ui/ThreeBodyLoader.vue";
 import { useAreaCascade } from "~/composables/useAreaCascade";
@@ -182,6 +205,10 @@ const formRef = ref<any>(null);
 // 回填/联动控制
 const isEditing = ref(false); // 回填期间阻止 watch 的联动
 const formLoading = ref(false); // 表单 overlay loading
+
+const deleteDialogVisible = ref(false);
+const deleteLoading = ref(false);
+const currentAddressId = ref();
 
 const form = reactive({
   id: null as number | null,
@@ -278,17 +305,17 @@ onMounted(async () => {
   // 先加载大区
   await loadAreas();
 
-  const missingAreaIds = areas.value
-    .filter((a: any) => !cache.provincesByArea.has(a.id))
-    .map((a: any) => a.id);
-  if (missingAreaIds.length) {
-    try {
-      await loadProvincesForAreas(missingAreaIds);
-    } catch (e) {
-      // 若失败，不要阻塞主流程，后续按需加载
-      console.warn("预加载省份失败，后续按需加载", e);
-    }
-  }
+  // const missingAreaIds = areas.value
+  //   .filter((a: any) => !cache.provincesByArea.has(a.id))
+  //   .map((a: any) => a.id);
+  // if (missingAreaIds.length) {
+  //   try {
+  //     await loadProvincesForAreas(missingAreaIds);
+  //   } catch (e) {
+  //     // 若失败，不要阻塞主流程，后续按需加载
+  //     console.warn("预加载省份失败，后续按需加载", e);
+  //   }
+  // }
   await fetchList();
 });
 
@@ -511,16 +538,21 @@ async function save() {
   }
 }
 
-async function onDelete(a: any) {
-  if (!confirm("确认删除该地址？")) return;
+async function onDeleteAddress() {
+  deleteDialogVisible.value = true;
   try {
-    await $api.addresses.deleteAddress(a.id);
-    $toast?.success?.("删除成功");
+    await $api.addresses.deleteAddress(currentAddressId.value);
+    $toast.success?.("删除成功");
     await fetchList();
   } catch (err) {
-    console.error(err);
-    $toast?.error?.("删除失败");
+    $toast.error?.("删除失败");
+  } finally {
+    deleteDialogVisible.value = false;
   }
+}
+function openDeleteConfirm(id: number) {
+  deleteDialogVisible.value = true;
+  currentAddressId.value = id;
 }
 
 async function setDefault(a: any) {
@@ -535,11 +567,4 @@ async function setDefault(a: any) {
 }
 </script>
 
-<style scoped>
-.text-muted {
-  color: var(--c-muted);
-}
-.bg-surface {
-  background: var(--c-surface);
-}
-</style>
+<style scoped></style>

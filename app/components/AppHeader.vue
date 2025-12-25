@@ -62,7 +62,7 @@
             关于我们
           </v-list-item>
 
-          <v-list-item to="/">
+          <v-list-item @click="$emit('service')">
             <v-icon start>mdi-headset</v-icon>
             客服
           </v-list-item>

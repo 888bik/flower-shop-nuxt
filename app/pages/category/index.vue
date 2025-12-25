@@ -1,155 +1,49 @@
 <template>
-  <div class="px-4 py-8">
-    <div class="max-w-7xl mx-auto">
-      <!-- Grid container -->
-      <div
-        class="grid gap-4 md:gap-6 grid-cols-1 sm:grid-cols-2 md:grid-cols-3 md:grid-rows-3"
-      >
-        <!-- Large left card (spans 3 rows on md+) -->
-        <div
-          class="card group relative overflow-hidden rounded-2xl shadow-lg p-6 flex flex-col justify-between"
-          :style="cardStyle(cards[0].bg)"
-          role="article"
-        >
-          <div>
-            <h3 class="text-2xl font-bold text-black/90">
-              {{ cards[0].title }}
-            </h3>
-            <p class="mt-2 text-sm text-black/70">{{ cards[0].subtitle }}</p>
-          </div>
-          <div class="flex items-end justify-between mt-6">
-            <div class="w-40">
-              <img
-                :src="cards[0].image"
-                :alt="cards[0].title"
-                class="w-full h-40 object-cover rounded-xl"
-                loading="lazy"
-              />
-            </div>
-            <button
-              class="go-btn ml-4"
-              @click="$emit('go', cards[0])"
-              aria-label="go"
-            >
-              GO <span class="ml-1">›</span>
-            </button>
-          </div>
-        </div>
+  <div class="min-h-screen bg-page mx-auto px-10 py-8">
+    <!-- 搜索结果信息（放在顶部） -->
+    <div
+      v-if="products.length > 0"
+      class="mb-6 text-center text-gray-600 text-lg flex items-start"
+    >
+      分类 “<span class="font-semibold text-primary">{{ categoryName }}</span
+      >” 下共有
+      <span class="font-semibold text-primary">{{ total }}</span> 件商品
+    </div>
 
-        <!-- Top middle small card -->
-        <div
-          class="card relative rounded-2xl shadow-md p-5 flex flex-col justify-between"
-          :style="cardStyle(cards[1].bg)"
-        >
-          <div>
-            <h4 class="text-lg font-semibold text-black/90">
-              {{ cards[1].title }}
-            </h4>
-            <p class="mt-1 text-xs text-black/60">{{ cards[1].subtitle }}</p>
-          </div>
-          <div class="flex items-center justify-between mt-4">
-            <img
-              :src="cards[1].image"
-              :alt="cards[1].title"
-              class="w-20 h-20 object-cover rounded-lg"
-              loading="lazy"
-            />
-            <button class="go-btn-sm" @click="$emit('go', cards[1])">GO</button>
-          </div>
-        </div>
+    <div v-if="loading" class="flex justify-center py-12">
+      <ThreeBodyLoader />
+    </div>
 
-        <!-- Top right small card -->
+    <div v-else>
+      <div v-if="products.length === 0" class="text-center py-10 text-muted">
+        分类 “{{ categoryName }}” 下暂无商品
+      </div>
+
+      <div v-else>
         <div
-          class="card relative rounded-2xl shadow-md p-5 flex flex-col justify-between"
-          :style="cardStyle(cards[2].bg)"
+          class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6"
         >
-          <div>
-            <h4 class="text-lg font-semibold text-black/90">
-              {{ cards[2].title }}
-            </h4>
-            <p class="mt-1 text-xs text-black/60">{{ cards[2].subtitle }}</p>
-          </div>
-          <div class="mt-4 flex justify-end">
-            <img
-              :src="cards[2].image"
-              :alt="cards[2].title"
-              class="w-20 h-20 object-cover rounded-lg"
-              loading="lazy"
+          <div
+            v-for="p in products"
+            :key="p.id"
+            class="cursor-pointer"
+            @click="goProduct(p.id)"
+          >
+            <ProductCardV1
+              :title="p.title"
+              :image="p.cover"
+              :price="p.minPrice"
+              :old-price="p.minOprice"
+              :rating="p.rating as number"
+              :sold="p.saleCount"
+              :banners="p.banners"
+              @add="onAdd(p.id)"
             />
           </div>
         </div>
 
-        <!-- Center large (spans 2 rows on md) -->
-        <div
-          class="card relative rounded-2xl shadow-lg p-6 md:row-span-2 flex flex-col justify-between"
-          :style="cardStyle(cards[3].bg)"
-        >
-          <div>
-            <h3 class="text-2xl font-bold text-black/90">
-              {{ cards[3].title }}
-            </h3>
-            <p class="mt-3 text-sm text-black/70">{{ cards[3].subtitle }}</p>
-          </div>
-
-          <div class="flex items-end justify-between mt-6">
-            <div class="text-right">
-              <button class="go-btn" @click="$emit('go', cards[3])">
-                GO <span class="ml-1">›</span>
-              </button>
-            </div>
-            <div class="w-48">
-              <img
-                :src="cards[3].image"
-                :alt="cards[3].title"
-                class="w-full h-48 object-cover rounded-xl"
-                loading="lazy"
-              />
-            </div>
-          </div>
-        </div>
-
-        <!-- Right column small top -->
-        <div
-          class="card relative rounded-2xl shadow-md p-4 flex items-center gap-3"
-          :style="cardStyle(cards[4].bg)"
-        >
-          <img
-            :src="cards[4].image"
-            :alt="cards[4].title"
-            class="w-20 h-20 object-cover rounded-lg"
-            loading="lazy"
-          />
-          <div>
-            <h5 class="text-sm font-semibold text-black/90">
-              {{ cards[4].title }}
-            </h5>
-            <p class="text-xs text-black/60">{{ cards[4].subtitle }}</p>
-            <button class="go-link mt-2" @click="$emit('go', cards[4])">
-              GO
-            </button>
-          </div>
-        </div>
-
-        <!-- Right column small bottom -->
-        <div
-          class="card relative rounded-2xl shadow-md p-4 flex items-center gap-3"
-          :style="cardStyle(cards[5].bg)"
-        >
-          <img
-            :src="cards[5].image"
-            :alt="cards[5].title"
-            class="w-20 h-20 object-cover rounded-lg"
-            loading="lazy"
-          />
-          <div>
-            <h5 class="text-sm font-semibold text-black/90">
-              {{ cards[5].title }}
-            </h5>
-            <p class="text-xs text-black/60">{{ cards[5].subtitle }}</p>
-            <button class="go-link mt-2" @click="$emit('go', cards[5])">
-              GO
-            </button>
-          </div>
+        <div class="mt-6 flex justify-center items-center gap-4">
+          <v-pagination v-model="page" :length="pageCount" />
         </div>
       </div>
     </div>
@@ -157,109 +51,90 @@
 </template>
 
 <script setup lang="ts">
-import { reactive } from "vue";
+import { ref, watch, onMounted, computed } from "vue";
+import { useRoute, useRouter } from "vue-router";
+import ThreeBodyLoader from "~/assets/base-ui/ThreeBodyLoader.vue";
+import ProductCardV1 from "~/components/ProductCard-v1.vue";
+import type { ProductItem } from "~/types/api/goods";
 
-/**
- * 你可以把数据从父组件传入，这里我们提供默认示例
- * cards 数组顺序对应上面模板中的卡片位置（左大、上中、上右、中大、右上、右下）
- */
+const route = useRoute();
+const router = useRouter();
+const { $api } = useNuxtApp();
+const cartStore = useCartStore();
 
-const cards = reactive([
-  {
-    title: "送恋人",
-    subtitle: "有幸遇见，恰好合拍",
-    image: "https://picsum.photos/seed/rose/400/320",
-    bg: "#fde8ee",
-  },
-  {
-    title: "送长辈",
-    subtitle: "岁月温柔 因你常在",
-    image: "https://picsum.photos/seed/elder/200/200",
-    bg: "#fff0e8",
-  },
-  {
-    title: "送朋友",
-    subtitle: "时光不老 我们不散",
-    image: "https://picsum.photos/seed/friend/200/200",
-    bg: "#e9f6ff",
-  },
-  {
-    title: "生日祝福",
-    subtitle: "新的 1 岁，值得庆祝",
-    image: "https://picsum.photos/seed/birthday/480/360",
-    bg: "#fdeee6",
-  },
-  {
-    title: "表白求婚",
-    subtitle: "浪漫时刻，铭记一生",
-    image: "https://picsum.photos/seed/propose/200/200",
-    bg: "#fff0f4",
-  },
-  {
-    title: "设计师甄选",
-    subtitle: "花语传情，稀有浪漫",
-    image: "https://picsum.photos/seed/designer/200/200",
-    bg: "#fef3f6",
-  },
-]);
+const categoryId = computed(() => Number(route.query.cid) || null);
+const categoryName = computed(() => String(route.query.name || "分类"));
 
-// 如果你想通过 props 传入数据：
-// const props = defineProps<{ cards?: Array<any> }>();
-// const data = props.cards ?? defaultCards
+const products = ref<ProductItem[]>([]);
+const loading = ref(false);
 
-// 帮助函数，把 hex 背景和文字色处理一下
-function cardStyle(bg: string) {
-  return {
-    background: bg,
-  };
+const page = ref(Number(route.query.page ?? 1));
+const limit = ref(Number(route.query.limit ?? 12));
+const total = ref(0);
+
+const pageCount = computed(() => Math.ceil(total.value / limit.value));
+
+const sortBy = ref("relevance");
+const sortOptions = [
+  { text: "相关度", value: "relevance" },
+  { text: "销量", value: "sale" },
+  { text: "价格：低到高", value: "price_asc" },
+  { text: "价格：高到低", value: "price_desc" },
+];
+
+async function getProductListByCid() {
+  if (!categoryId.value) return;
+
+  loading.value = true;
+  try {
+    const res = await $api.goods.getProductList(
+      page.value,
+      limit.value,
+      categoryId.value
+    );
+    products.value = res.list;
+    total.value = res?.totalCount;
+  } catch (err) {
+    $toast?.error?.("获取分类数据失败，请重试");
+  } finally {
+    loading.value = false;
+  }
+}
+
+const onAdd = async (id: number) => {
+  const success = await cartStore.addCart(id, 1);
+  if (success) {
+    await cartStore.fetchCart();
+    $toast.success("加入购物车成功");
+  }
+};
+
+watch([page, sortBy], () => getProductListByCid());
+
+watch(
+  () => route.query.cid,
+  () => {
+    page.value = Number(route.query.page ?? 1);
+    limit.value = Number(route.query.limit ?? 12);
+    getProductListByCid();
+  },
+  { immediate: true }
+);
+
+onMounted(() => {
+  getProductListByCid();
+});
+
+function goProduct(id: number) {
+  router.push(`/detail/${id}`);
 }
 </script>
 
 <style scoped>
-/* 基础 card 风格抽离，使用 @apply 简化 */
 .card {
-  @apply rounded-2xl overflow-hidden;
   border: 1px solid rgba(0, 0, 0, 0.04);
-}
-
-/* GO button 大 */
-.go-btn {
-  @apply inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium;
-  background: #fff;
-  color: #0b0b0b;
-  border: 1px solid rgba(0, 0, 0, 0.06);
-  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.08);
-  transition: transform 0.12s ease, box-shadow 0.12s ease;
-}
-.go-btn:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.12);
-}
-
-/* 小 GO */
-.go-btn-sm {
-  @apply inline-flex items-center justify-center px-3 py-1 rounded-full text-xs font-medium bg-white/90 text-black;
-}
-
-/* link style */
-.go-link {
-  @apply inline-block text-xs text-[#ff6b6b] border border-[#ffcccc] px-2 py-1 rounded;
-  background: rgba(255, 255, 255, 0.5);
-}
-
-/* gold token (若需要) */
-.text-gold {
-  color: #d4af37;
-}
-.bg-gold {
-  background-color: #d4af37;
-}
-
-/* small responsive tweaks */
-@media (min-width: 768px) {
-  /* 在 md+ 屏幕上把第一个卡片撑高（等同左栏占 3 行） */
-  .grid > :first-child {
-    grid-row: span 3 / span 3;
-  }
+  padding: 8px;
+  border-radius: 8px;
+  background: white;
 }
 </style>

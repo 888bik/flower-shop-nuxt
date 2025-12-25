@@ -28,12 +28,20 @@ export const useCartStore = defineStore("cart", {
       }
     },
     async addCart(goodsId: number, num: number) {
+      const auth = useAuthStore();
+      if (!auth.isLogin) {
+        $toast?.error?.("请先登录");
+        return false;
+      }
       this.adding = true;
       const { $api } = useNuxtApp();
       try {
         await $api.cart.addCart({ goodsId, num });
         //添加成功重新获取数据
         await this.fetchCart();
+        $toast.success("添加购物车成功");
+      } catch (error) {
+        $toast.error("添加购物车失败");
       } finally {
         this.adding = false;
       }

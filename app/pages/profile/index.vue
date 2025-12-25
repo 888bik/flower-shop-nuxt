@@ -205,7 +205,7 @@
   </div>
 </template>
 
-<script setup lang="ts">
+<script setup lang="ts" client>
 import { ref, computed, onMounted, watch } from "vue";
 import { useRouter } from "vue-router";
 import type { UserProfile } from "~/types/api/user";
@@ -309,7 +309,7 @@ onMounted(() => {
 watch(
   () => userStore.userInfo,
   (v) => {
-    if (!mounted.value) return; // do not mutate during SSR/hydration
+    if (!mounted.value) return;
     if (v) profile.value = { ...profile.value, ...v };
   }
 );
@@ -318,21 +318,7 @@ watch(
 .shadow-soft-lg {
   box-shadow: 0 8px 30px rgba(15, 23, 36, 0.06);
 }
-.text-muted {
-  color: var(--c-muted);
-}
-.text-text {
-  color: var(--c-text);
-}
-.bg-surface {
-  background: var(--c-surface);
-}
-.bg-page {
-  background: var(--c-bg);
-}
-.border-borderColor {
-  border-color: var(--c-border);
-}
+
 .w-28.h-28 {
   position: relative;
 }

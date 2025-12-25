@@ -4,7 +4,7 @@ type TokenKey = "accessToken" | "refreshToken";
 
 export function setToken(key: TokenKey, token: string, rememberMe = false) {
   const options = rememberMe
-    ? { expires: 7 as number, secure: true, sameSite: "Lax" as const } // 注意 TS 字面量类型
+    ? { expires: 7 as number, secure: true, sameSite: "Lax" as const }
     : { secure: true, sameSite: "Lax" as const };
 
   Cookies.set(key, token, options);

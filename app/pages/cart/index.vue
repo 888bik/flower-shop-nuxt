@@ -78,7 +78,6 @@
                 </div>
               </div>
 
-              <!-- item 列表 -->
               <div class="space-y-4">
                 <div
                   v-for="item in cartList"
@@ -88,7 +87,6 @@
                   role="group"
                   aria-labelledby="'cart-item-'+item.id"
                 >
-                  <!-- checkbox -->
                   <div class="flex items-start pt-1">
                     <input
                       type="checkbox"
@@ -98,7 +96,6 @@
                     />
                   </div>
 
-                  <!-- image -->
                   <NuxtLink
                     :to="`/detail/${item.goodsId}`"
                     class="block w-24 h-24 rounded-lg overflow-hidden shrink-0"
@@ -111,7 +108,6 @@
                     />
                   </NuxtLink>
 
-                  <!-- info -->
                   <div class="flex flex-1 flex-col">
                     <div class="flex items-start justify-between gap-4">
                       <div>
@@ -120,7 +116,7 @@
                           class="font-medium text-text-primary"
                         >
                           <NuxtLink
-                            :to="`/goods/${item.goodsId}`"
+                            :to="`/detail/${item.goodsId}`"
                             class="hover:underline"
                             >{{ item.title }}</NuxtLink
                           >

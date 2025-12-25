@@ -32,7 +32,7 @@
   </div>
 </template>
 
-<script setup lang="ts">
+<script setup lang="ts" client>
 import { ref, onMounted } from "vue";
 import Favorite from "~/assets/base-ui/Favorite.vue";
 import ThreeBodyLoader from "~/assets/base-ui/ThreeBodyLoader.vue";
@@ -75,6 +75,7 @@ const handleBtnClick = async (id: number) => {
   favorites.value.splice(index, 1);
   try {
     await $api.user.toggleGoodsFavorite(id, false);
+    $toast.success("取消成功");
   } catch (error) {
     favorites.value.splice(index, 0, removedItem);
     $toast.error("取消收藏失败，请稍后再试");

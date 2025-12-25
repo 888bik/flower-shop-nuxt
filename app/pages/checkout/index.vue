@@ -76,7 +76,7 @@
                   :style="{ borderColor: 'var(--c-border)' }"
                 >
                   <NuxtLink
-                    :to="`/goods/${item.goodsId}`"
+                    :to="`/detail/${item.goodsId}`"
                     class="block w-20 h-20 rounded overflow-hidden shrink-0"
                   >
                     <img
@@ -628,7 +628,7 @@ async function placeOrder() {
     const payload = {
       addressId: selectedAddress.value.id,
       items,
-      couponId: selectedCouponId.value,
+      couponUserId: selectedCouponId.value,
       shippingType: shippingType.value,
       remark: "",
     };

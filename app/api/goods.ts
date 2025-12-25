@@ -1,6 +1,6 @@
 import type { MyRequest } from "~/plugins/axios";
 import type {
-  CategoryListResponse,
+  CategoryGroup,
   GoodsDetailResponse,
   ProductListResponse,
   searchResponse,
@@ -17,7 +17,7 @@ export default (api: MyRequest) => ({
     });
   },
   getCategoryList() {
-    return api.get<CategoryListResponse[]>("/mall/categories");
+    return api.get<CategoryGroup[]>("/mall/categories");
   },
   getGoodsDetail(id: number) {
     return api.get<GoodsDetailResponse>(`/mall/goods/${id}`);

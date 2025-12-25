@@ -13,7 +13,7 @@
 <script lang="ts" setup>
 import Toast from "~/components/Toast.vue";
 import { onMounted } from "vue";
-import { useTheme } from "~/composables/useTheme";
+
 const authStore = useAuthStore();
 const cartStore = useCartStore();
 

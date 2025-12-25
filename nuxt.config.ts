@@ -31,6 +31,21 @@ export default defineNuxtConfig({
       defaultDescription: "全国鲜花速递，当天送达，送花就上花语商城。",
     },
   },
+  // 添加 nitro 配置
+  nitro: {
+    devProxy: {
+      "/api": {
+        target: "http://8.148.226.68:11048",
+        changeOrigin: true,
+      },
+    },
+    routeRules: {
+      // 生产环境代理配置
+      "/api/**": {
+        proxy: "http://8.148.226.68:11048/api/**",
+      },
+    },
+  },
   vite: {
     server: {
       proxy: {
@@ -42,6 +57,7 @@ export default defineNuxtConfig({
         },
       },
     },
+
     plugins: [vuetify({ autoImport: true })],
     vue: {
       template: {

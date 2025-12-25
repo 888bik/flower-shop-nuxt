@@ -128,7 +128,7 @@ export class MyRequest {
 // 插件注入
 export default defineNuxtPlugin((nuxtApp) => {
   const config = useRuntimeConfig();
-  // const serverBase = process.server ? "http://8.148.226.68:11048" : "/api"; // 浏览器开发通过 Vite proxy
+  // const serverBase = import.meta.server ? "http://8.148.226.68:11048" : "/api"; // 浏览器开发通过 Vite proxy
   const serverBase = "/api";
 
   const axiosInstance = new MyRequest({

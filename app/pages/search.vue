@@ -1,6 +1,14 @@
 <template>
   <div class="min-h-screen bg-page mx-auto px-10 py-8">
-    <div class="flex items-center gap-4 mb-6"></div>
+    <!-- 搜索结果信息（放在顶部） -->
+    <div
+      v-if="products.length > 0"
+      class="mb-6 text-center text-gray-600 text-lg flex items-start"
+    >
+      “<span class="font-semibold text-primary">{{ keyword }}</span
+      >” 的搜索结果， 共找到
+      <span class="font-semibold text-primary">{{ total }}</span> 件商品
+    </div>
 
     <div v-if="loading" class="flex justify-center py-12">
       <ThreeBodyLoader />
@@ -56,7 +64,6 @@ const keyword = ref((route.query.keyword as string) ?? "");
 const products = ref<searchItem[]>([]);
 const loading = ref(false);
 
-// pagination
 const page = ref(Number(route.query.page ?? 1));
 const limit = ref(Number(route.query.limit ?? 12));
 const total = ref(0);
@@ -102,8 +109,6 @@ async function search() {
 
 const onAdd = async (id: number) => {
   await cartStore.addCart(id, 1);
-  cartStore.fetchCart();
-  $toast.success("添加购物车成功");
 };
 
 // 当路由 query.keyword 改变，更新 keyword

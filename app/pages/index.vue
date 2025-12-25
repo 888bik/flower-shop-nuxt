@@ -1,32 +1,37 @@
 <template>
   <div class="bg-page text-primary min-h-screen">
+    <!-- 滚动条 -->
     <AnnouncementBar :announcements="announcements" :speed="1" />
-    <!-- Banner -->
-    <div class="home-banner">
+
+    <!-- 轮播图 -->
+    <div class="home-banner-wrap relative">
+      <aside
+        class="absolute z-10 left-20 top-20 w-[240px] bg-gray-600/60 p-4 rounded"
+      >
+        <div v-for="c in homeCategoryList" :key="c.typeId" class="mb-5">
+          <!-- 一级分类 -->
+          <div class="text-white font-semibold mb-2">
+            {{ c.name }}
+          </div>
+
+          <!-- 二级分类 -->
+          <div class="grid grid-cols-3 gap-2 border-b border-white/30 pb-1">
+            <div
+              v-for="sub in c.children"
+              :key="sub.id"
+              class="text-white text-sm text-center cursor-pointer"
+              @click="goCategory(sub.id, sub.name)"
+            >
+              <span class="hover:text-[#E97351]">
+                {{ sub.name }}
+              </span>
+            </div>
+          </div>
+        </div>
+      </aside>
+
       <BannerCarousel />
     </div>
-
-    <section class="mx-auto max-w-[1440px] px-6 mt-10">
-      <div class="max-w-xl">
-        <h1 class="text-4xl md:text-6xl font-bold text-heading leading-tight">
-          花间雅苑 · 温柔礼花
-        </h1>
-
-        <p class="mt-4 text-muted text-lg">
-          每天一束，用心到达 — 鲜花礼盒 / 永生花 / 绿植
-        </p>
-
-        <div class="mt-8 flex gap-4">
-          <button
-            @click="$router.push('/category')"
-            class="rounded-md font-semibold px-8 py-3 shadow bg-primary text-white"
-          >
-            立即选购
-          </button>
-          <button class="rounded-md px-8 py-3 border">热销推荐</button>
-        </div>
-      </div>
-    </section>
 
     <section class="mx-auto max-w-[1240px] mt-16">
       <Festival class="h-[400px]" />
@@ -38,68 +43,43 @@
       </div>
     </section>
 
-    <!-- 分类控制条 -->
-    <section class="container mx-auto px-6 py-6">
-      <div class="flex flex-wrap gap-3">
-        <button
-          :class="[
-            'px-4 py-2 rounded-full text-sm font-medium',
-            !selectedCategoryId ? 'active-pill' : 'pill-surface',
-          ]"
-          @click="selectCategory(null)"
-          :aria-pressed="!selectedCategoryId"
-        >
-          全部
-        </button>
-
-        <button
-          v-for="c in categoryList"
-          :key="c.id"
-          :class="[
-            'px-4 py-2 rounded-full text-sm font-medium',
-            selectedCategoryId === c.id ? 'active-pill' : 'pill-surface',
-          ]"
-          @click="selectCategory(c.id)"
-          :aria-pressed="selectedCategoryId === c.id"
-        >
-          {{ c.name }}
-        </button>
+    <main class="container mx-auto px-6 pb-16 max-w-[1400px]">
+      <div v-if="homeLoading" class="flex justify-center py-12">
+        <ThreeBodyLoader />
       </div>
-    </section>
-
-    <!-- 商品列表 -->
-    <main class="container mx-auto px-6 pb-16">
-      <div>
-        <ProductGrid
-          :product-list-data="displayedProducts"
-          :total-count="totalCount"
-          class="mt-4"
-        />
-      </div>
-
-      <!-- 加载更多 / 动画 -->
-      <div class="flex justify-center mb-6" ref="loadMoreRef">
-        <button
-          v-if="!loadMoreLoading && hasMore"
-          @click="loadMore"
-          class="px-6 py-2 rounded-md font-medium shadow"
-          :style="{ background: 'var(--c-primary)', color: '#fff' }"
+      <div v-else>
+        <div
+          v-for="(item, index) in homeFloors"
+          :key="index"
+          :id="'floor-' + item.id"
         >
-          <span class="text-sm text-white">加载更多</span>
-        </button>
-
-        <span v-else-if="loadMoreLoading">
-          <ThreeBodyLoader />
-        </span>
+          <ProductGridWithBanner
+            :products="item.products"
+            :title="item.title"
+            :banner="item.bannerImage"
+            :category-id="item.categoryId"
+            @add="onAdd"
+            @click-card="onClickCard"
+            class="mt-14"
+          />
+        </div>
       </div>
     </main>
+    <RightNavBar
+      :sections="
+        homeFloors.map((f) => ({ id: 'floor-' + f.id, label: f.title }))
+      "
+    />
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, onMounted, onUnmounted } from "vue";
+import { ref, reactive, onMounted } from "vue";
 import ThreeBodyLoader from "~/assets/base-ui/ThreeBodyLoader.vue";
-import type { ProductItem } from "~/types/api/goods";
+import ProductGridWithBanner from "~/components/ProductGridWithBanner.vue";
+import RightNavBar from "~/components/RightNavBar.vue";
+import type { CategoryGroup, ProductItem } from "~/types/api/goods";
+import type { GoodsSimple, HomeFloor } from "~/types/api/home";
 import type { NoticeItem } from "~/types/api/notice";
 
 // 异步组件懒加载
@@ -115,9 +95,6 @@ const CategoryCard = defineAsyncComponent(
 const Festival = defineAsyncComponent(
   () => import("~/components/Festival.vue")
 );
-const ProductGrid = defineAsyncComponent(
-  () => import("~/components/ProductGrid.vue")
-);
 
 useSeo({
   title: "鲜花速递_生日鲜花_节日鲜花【花间雅苑】",
@@ -128,17 +105,13 @@ useSeo({
 
 const { $api } = useNuxtApp();
 
-// 分类
-const categoryList = ref<{ id: number; name: string }[]>([]);
-const selectedCategoryId = ref<number | null>(null);
+const cartStore = useCartStore();
+import { useRouter } from "vue-router";
+const router = useRouter();
 
-// 商品列表
-const displayedProducts = ref<ProductItem[]>([]);
-const totalCount = ref(0);
-const pageSize = 12;
-const currentPage = ref(1);
-const loadMoreLoading = ref(false);
-const hasMore = ref(false);
+const homeCategoryList = ref<CategoryGroup[]>();
+const homeFloors = ref<HomeFloor[]>([]);
+const homeLoading = ref(false);
 
 // 通知公告
 const noticeList = ref<NoticeItem[]>([]);
@@ -149,49 +122,18 @@ const announcements = computed(() =>
     link: "/",
   }))
 );
-// 滚动加载
-const loadMoreRef = ref<HTMLElement | null>(null);
-let observer: IntersectionObserver | null = null;
 
-// 分类切换
-function selectCategory(id: number | null) {
-  selectedCategoryId.value = id;
-  fetchProducts(true);
-}
-async function loadMore() {
-  await fetchProducts(false);
-}
-// 获取商品
-const fetchProducts = async (reset = false) => {
-  if (loadMoreLoading.value) return;
-  loadMoreLoading.value = true;
-
-  try {
-    if (reset) currentPage.value = 1;
-
-    const res = await $api.goods.getProductList(
-      currentPage.value,
-      pageSize,
-      selectedCategoryId.value
-    );
-
-    const list = res?.list ?? [];
-    totalCount.value = res?.totalCount ?? 0;
-
-    if (reset) {
-      displayedProducts.value = list;
-    } else {
-      displayedProducts.value.push(...list);
-    }
-
-    hasMore.value = displayedProducts.value.length < totalCount.value;
-    currentPage.value++;
-  } catch (error) {
-    console.error("获取商品失败", error);
-  } finally {
-    loadMoreLoading.value = false;
-  }
+const onAdd = async (p: GoodsSimple) => {
+  await cartStore.addCart(p.id, 1);
 };
+
+function goCategory(subId: number, name: string) {
+  router.push({ path: "/category", query: { cid: subId, name } });
+}
+
+function onClickCard(product: any) {
+  router.push(`/detail/${product.id}`);
+}
 
 // 初次加载
 onMounted(async () => {
@@ -199,37 +141,21 @@ onMounted(async () => {
   noticeList.value = noticeRes?.list ?? [];
 
   const categoryRes = await $api.goods.getCategoryList();
-  categoryList.value = categoryRes ?? [];
-  await fetchProducts(true);
-  if (
-    typeof window !== "undefined" &&
-    "IntersectionObserver" in window &&
-    loadMoreRef.value
-  ) {
-    observer = new IntersectionObserver(([entry]) => {
-      if (entry?.isIntersecting && !loadMoreLoading.value && hasMore.value) {
-        fetchProducts(false);
-      }
-    });
-    observer.observe(loadMoreRef.value);
+  homeCategoryList.value = categoryRes ?? [];
+
+  try {
+    homeLoading.value = true;
+    const res = await $api.home.getHomeFloors();
+    homeFloors.value = res || [];
+  } catch (err) {
+    console.error(err);
+  } finally {
+    homeLoading.value = false;
   }
 });
-
-onUnmounted(() => observer?.disconnect());
 </script>
 
 <style scoped>
-/* pill 状态 */
-.pill-surface {
-  background: var(--c-surface);
-  color: var(--c-text);
-  border: 1px solid rgba(0, 0, 0, 0.04);
-}
-.active-pill {
-  background: var(--c-primary);
-  color: #fff;
-  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.08);
-}
 .scene-wrap {
   width: 1240px;
   margin: 0 auto;

@@ -79,7 +79,6 @@ const emit = defineEmits<{
 const currentIndex = ref(0);
 const isNext = ref(true);
 const showList = ref(true);
-console.log(props.pictureUrls);
 
 const currentImage = computed(
   () => props.pictureUrls[currentIndex.value] || ""

@@ -33,7 +33,7 @@ export interface CreateOrderPayload {
   addressId: number;
   shippingType: string;
   remark?: string | null;
-  couponId?: number | null;
+  couponUserId?: number | null;
 }
 
 export interface CreateOrderResponse {
